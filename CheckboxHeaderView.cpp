@@ -31,6 +31,10 @@ void CheckboxHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
             break;
         }
     }
+    else
+    {
+        QHeaderView::paintSection(painter, rect, logicalIndex);
+    }
 }
 
 void CheckboxHeaderView::paintAllChecked(QPainter *painter, const QRect &rect) const

@@ -77,4 +77,34 @@ void CheckboxTable::updateHeaderCheckStatus(int status)
     m_tableHeader->setCheckStatus(headerBoxStatus);
 }
 
+void CheckboxTable::setHeaderString(QStringList &list)
+{
+    int headerCount = list.count();
+    for(int i = 0;i < headerCount; i++ )
+    {
+        QTableWidgetItem *item = new QTableWidgetItem();
+        item->setText(list.at(i));
+
+        int column = i;
+        if(i >= m_checkIndex)
+        {
+            column = i+1;
+        }
+        setHorizontalHeaderItem(column, item);
+    }
+}
+
+void CheckboxTable::setHeaderWidth(QList<int> &list)
+{
+    int headerCount = list.count();
+    for(int i = 0;i < headerCount; i++ )
+    {
+        int column = i;
+        if(i >= m_checkIndex)
+        {
+            column = i+1;
+        }
+        setColumnWidth(column, list.at(i));
+    }
+}
 

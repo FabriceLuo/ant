@@ -14,6 +14,8 @@ class CheckboxTable : public QTableWidget
 Q_OBJECT
 public:
     CheckboxTable(int rows, int columns, int checkIndex = 0, QWidget *parent = Q_NULLPTR);
+    void setHeaderString(QStringList &list);
+    void setHeaderWidth(QList<int> &list);
 private:
     CheckboxHeaderView *m_tableHeader;
 public slots:

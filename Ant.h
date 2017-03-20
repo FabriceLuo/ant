@@ -18,6 +18,20 @@ public:
     int m_timerID;
     void timerEvent(QTimerEvent *event);
     ~Ant();
+
+private:
+    QStringList m_headerTitle = {
+        "文件名",
+        "本地路径",
+        "远程路径",
+        "修改时间"
+    };
+    QList<int> m_headerWidth = {
+        150,
+        420,
+        420,
+        154
+    };
 };
 
 #endif // ANT_H
