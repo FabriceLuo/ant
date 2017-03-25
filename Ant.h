@@ -6,6 +6,10 @@
 class CheckboxTable;
 class CheckboxHeaderView;
 class QTimerEvent;
+class QPushButton;
+class QLineEdit;
+class QLabel;
+class QWidget;
 
 class Ant : public QMainWindow
 {
@@ -32,6 +36,11 @@ private:
         420,
         154
     };
+    QPushButton *m_updateButton, *m_syncButton;
+    QLineEdit  *m_addrEdit;
+    QLabel     *m_addrLabel;
+    QWidget    *m_mainWidget;
+
 };
 
 #endif // ANT_H

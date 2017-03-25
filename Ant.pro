@@ -16,11 +16,23 @@ TEMPLATE = app
 SOURCES += main.cpp\
         Ant.cpp \
     CheckboxHeaderView.cpp \
-    CheckboxTable.cpp
+    CheckboxTable.cpp \
+    AntSyncer.cpp \
+    AntSetting.cpp \
+    AntBackup.cpp \
+    AntLog.cpp \
+    AntTransfer.cpp \
+    AntSvn.cpp
 
 HEADERS  += Ant.h \
     CheckboxHeaderView.h \
-    CheckboxTable.h
+    CheckboxTable.h \
+    AntSyncer.h \
+    AntSetting.h \
+    AntBackup.h \
+    AntLog.h \
+    AntTransfer.h \
+    AntSvn.h
 
 RESOURCES += \
     ant.qrc
