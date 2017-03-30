@@ -21,8 +21,7 @@ SOURCES += main.cpp\
     AntSetting.cpp \
     AntBackup.cpp \
     AntLog.cpp \
-    AntTransfer.cpp \
-    AntSvn.cpp
+    AntTransfer.cpp
 
 HEADERS  += Ant.h \
     CheckboxHeaderView.h \
@@ -31,8 +30,7 @@ HEADERS  += Ant.h \
     AntSetting.h \
     AntBackup.h \
     AntLog.h \
-    AntTransfer.h \
-    AntSvn.h
+    AntTransfer.h
 
 RESOURCES += \
     ant.qrc

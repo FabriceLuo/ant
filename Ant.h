@@ -2,6 +2,7 @@
 #define ANT_H
 
 #include <QMainWindow>
+#include <QString>
 
 class CheckboxTable;
 class CheckboxHeaderView;
@@ -41,6 +42,28 @@ private:
     QLabel     *m_addrLabel;
     QWidget    *m_mainWidget;
 
+    QString m_svnAddr;
+
+    QStringList getSvnChangeList(QString &path);
+
+private slots:
+    void syncSvnChangeFile();
+
+};
+
+enum SvnEntryStatus
+{
+    SvnEntryError,
+    SvnEntryAdd,
+    SvnEntryModify,
+    SvnEntryDelete
+};
+
+class SvnEntry
+{
+public:
+    QString path;
+    SvnEntryStatus status;
 };
 
 #endif // ANT_H

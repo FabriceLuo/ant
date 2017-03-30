@@ -11,6 +11,9 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QLabel>
+#include <QProcess>
+#include <QString>
+#include <QRegExp>
 
 Ant::Ant(QWidget *parent)
     : QMainWindow(parent)
@@ -50,6 +53,8 @@ Ant::Ant(QWidget *parent)
     m_mainWidget = new QWidget();
     m_mainWidget->setLayout(mainLayout);
     setCentralWidget(m_mainWidget);
+
+    connect(m_syncButton, SIGNAL(clicked(bool)), this, SLOT(syncSvnChangeFile()));
 }
 
 Ant::~Ant()
@@ -60,4 +65,48 @@ Ant::~Ant()
 void Ant::timerEvent(QTimerEvent *event)
 {
 
+}
+
+void Ant::syncSvnChangeFile()
+{
+    m_svnAddr = m_addrEdit->text();
+    QStringList changeList = getSvnChangeList(m_svnAddr);
+    int changeCount = changeList.count();
+    for(int i = 0; i< changeCount; i++)
+    {
+        m_table->setItem(i, 1, new QTableWidgetItem(changeList.at(i)));
+    }
+}
+
+QStringList Ant::getSvnChangeList(QString &path)
+{
+    QString cmd("git");
+    QStringList param = {
+        "-C",
+        path,
+        "status",
+        "-s"
+    };
+
+    QProcess process;
+    process.start(cmd, param);
+    process.waitForStarted();
+    process.waitForFinished();
+
+    QString changeString = process.readAllStandardOutput();
+    QStringList fileList;
+    QStringList changeList = changeString.split("\n");
+    int changeCount = changeList.count();
+    for(int i=0;i < changeCount; i++)
+    {
+        QStringList entryList = changeList.at(i).split(QRegExp("\s*"));
+        if(entryList.count() < 4)
+        {
+            continue;
+        }
+        fileList.append(entryList.at(3));
+    }
+
+
+    return fileList;
 }
