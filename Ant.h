@@ -12,6 +12,23 @@ class QLineEdit;
 class QLabel;
 class QWidget;
 
+enum SvnEntryStatus
+{
+    SvnEntryError,
+    SvnEntryAdd,
+    SvnEntryModify,
+    SvnEntryDelete
+};
+
+class SvnEntry
+{
+public:
+    QString path;
+    QString name;
+    int64_t size;
+    SvnEntryStatus status;
+};
+
 class Ant : public QMainWindow
 {
     Q_OBJECT
@@ -44,26 +61,12 @@ private:
 
     QString m_svnAddr;
 
-    QStringList getSvnChangeList(QString &path);
+    QList<SvnEntry> getSvnChangeList(QString &path);
 
 private slots:
     void syncSvnChangeFile();
 
 };
 
-enum SvnEntryStatus
-{
-    SvnEntryError,
-    SvnEntryAdd,
-    SvnEntryModify,
-    SvnEntryDelete
-};
-
-class SvnEntry
-{
-public:
-    QString path;
-    SvnEntryStatus status;
-};
 
 #endif // ANT_H

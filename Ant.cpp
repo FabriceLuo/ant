@@ -14,6 +14,9 @@
 #include <QProcess>
 #include <QString>
 #include <QRegExp>
+#include <QRegularExpression>
+#include <QDir>
+#include <QFileInfo>
 
 Ant::Ant(QWidget *parent)
     : QMainWindow(parent)
@@ -70,15 +73,18 @@ void Ant::timerEvent(QTimerEvent *event)
 void Ant::syncSvnChangeFile()
 {
     m_svnAddr = m_addrEdit->text();
-    QStringList changeList = getSvnChangeList(m_svnAddr);
+    QList<SvnEntry> changeList = getSvnChangeList(m_svnAddr);
     int changeCount = changeList.count();
     for(int i = 0; i< changeCount; i++)
     {
-        m_table->setItem(i, 1, new QTableWidgetItem(changeList.at(i)));
+        m_table->setItem(i, 1, new QTableWidgetItem(changeList.at(i).name));
+        m_table->setItem(i, 2, new QTableWidgetItem(changeList.at(i).path));
+        m_table->setItem(i, 3, new QTableWidgetItem(changeList.at(i).name));
+        m_table->setItem(i, 4, new QTableWidgetItem(changeList.at(i).name));
     }
 }
 
-QStringList Ant::getSvnChangeList(QString &path)
+QList<SvnEntry> Ant::getSvnChangeList(QString &path)
 {
     QString cmd("git");
     QStringList param = {
@@ -93,20 +99,35 @@ QStringList Ant::getSvnChangeList(QString &path)
     process.waitForStarted();
     process.waitForFinished();
 
+    QList<SvnEntry> svnList;
+
     QString changeString = process.readAllStandardOutput();
-    QStringList fileList;
     QStringList changeList = changeString.split("\n");
     int changeCount = changeList.count();
+
+    QDir svnDir(path);
+
     for(int i=0;i < changeCount; i++)
     {
-        QStringList entryList = changeList.at(i).split(QRegExp("\s*"));
-        if(entryList.count() < 4)
+        QString changeEntry = changeList.at(i);
+        changeEntry.remove(QRegularExpression("^ +"));
+        QStringList entryList = changeEntry.split(QRegularExpression(" +"));
+
+        if(entryList.count() < 2)
         {
             continue;
         }
-        fileList.append(entryList.at(3));
+        QFileInfo fileInfo(svnDir, entryList.at(1));
+
+        SvnEntry svnNode;
+        svnNode.path    = fileInfo.absoluteFilePath();
+        svnNode.status  = !entryList.at(0).compare("M") ? SvnEntryModify : SvnEntryAdd;
+        svnNode.name    = fileInfo.baseName();
+        svnNode.size    = fileInfo.size();
+
+        svnList.push_back(svnNode);
     }
 
 
-    return fileList;
+    return svnList;
 }
