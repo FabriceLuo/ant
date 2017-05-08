@@ -11,7 +11,7 @@ public:
     AntCommander();
     AntCommander(const QString &host, const QString &username, const QString &password);
 
-    bool connect(const QString &host, const QString &username, const QString &password);
+    void init(const QString &host, const QString &username, const QString &password);
     QString find(const QString &path);
 
     bool exec(const QString &cmd, const QStringList &param, QString &stdout, QString &stderr);
@@ -25,6 +25,7 @@ private:
     QString m_host, m_username, m_password;
 
     bool checkConnect();
+    bool connect(const QString &host, const QString &username, const QString &password);
 };
 
 #endif // ANTCOMMANDER_H

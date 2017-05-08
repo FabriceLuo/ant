@@ -10,12 +10,15 @@ AntCommander::AntCommander(const QString &host, const QString &username, const Q
 {
 }
 
-bool AntCommander::connect(const QString &host, const QString &username, const QString &password)
+void AntCommander::init(const QString &host, const QString &username, const QString &password)
 {
     m_host      = host;
     m_username  = username;
     m_password  = password;
+}
 
+bool AntCommander::connect(const QString &host, const QString &username, const QString &password)
+{
     int rc;
     //init session
     if(m_session == NULL)
@@ -72,6 +75,21 @@ bool AntCommander::checkConnect()
     {
         return connect(m_host, m_username, m_password);
     }
+    return true;
+}
+
+bool AntCommander::exec(const QString &cmd, const QStringList &param, QString &stdout, QString &stderr)
+{
+    return true;
+}
+
+bool AntCommander::scpTo(const QString &src, const QString &des)
+{
+    return true;
+}
+
+bool AntCommander::scpFrom(const QString &src, const QString &des)
+{
     return true;
 }
 
