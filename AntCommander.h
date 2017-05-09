@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QStringList>
+#include <libssh2.h>
 
 
 class AntCommander
@@ -12,9 +13,8 @@ public:
     AntCommander(const QString &host, const QString &username, const QString &password);
 
     void init(const QString &host, const QString &username, const QString &password);
-    QString find(const QString &path);
 
-    bool exec(const QString &cmd, const QStringList &param, QString &stdout, QString &stderr);
+    int exec(const QString &cmd, const QStringList &param, QString &stdout, QString &stderr);
     bool scpTo(const QString &src, const QString &des);
     bool scpFrom(const QString &src, const QString &des);
 

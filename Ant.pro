@@ -23,7 +23,10 @@ SOURCES += main.cpp\
     AntLog.cpp \
     AntTransfer.cpp \
     AntFinder.cpp \
-    AntCommander.cpp
+    AntCommander.cpp \
+    AntVersion.cpp \
+    AntSvn.cpp \
+    AntGit.cpp
 
 HEADERS  += Ant.h \
     CheckboxHeaderView.h \
@@ -34,7 +37,10 @@ HEADERS  += Ant.h \
     AntLog.h \
     AntTransfer.h \
     AntFinder.h \
-    AntCommander.h
+    AntCommander.h \
+    AntVersion.h \
+    AntSvn.h \
+    AntGit.h
 
 RESOURCES += \
     ant.qrc

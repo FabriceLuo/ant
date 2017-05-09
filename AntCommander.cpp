@@ -1,4 +1,6 @@
 #include "AntCommander.h"
+#include <QStringList>
+#include <QString>
 
 AntCommander::AntCommander()
 {
@@ -78,9 +80,102 @@ bool AntCommander::checkConnect()
     return true;
 }
 
-bool AntCommander::exec(const QString &cmd, const QStringList &param, QString &stdout, QString &stderr)
+int AntCommander::exec(const QString &cmd, const QStringList &param, QString &stdout, QString &stderr)
 {
-    return true;
+    if(!checkConnect())
+    {
+        return -1;
+    }
+
+    cmd.append(param.join(' '));
+    char *exec_cmd = cmd.toLatin1().data();
+
+    while ((rc = libssh2_channel_exec(m_channel, exec_cmd)) == LIBSSH2_ERROR_EAGAIN) {
+        waitsocket(m_socket, m_session);
+    }
+    if(rc != 0)
+    {
+        fprintf(stderr, "error\n");
+        return -1;
+    }
+
+    char buffer[2048];
+    //read std out
+    while (1) {
+        int rc;
+        do
+        {
+            rc = libssh2_channel_read(m_channel, buffer, sizeof(buffer));
+            if(rc > 0)
+            {
+                stdout.append(buffer);
+            }
+            else
+            {
+                if(rc != LIBSSH2_ERROR_EAGAIN)
+                {
+                    fprintf(stderr, "libssh2 channel returned");
+                }
+            }
+        }
+        while(rc > 0);
+
+        if(rc == LIBSSH2_ERROR_EAGAIN)
+        {
+            waitsocket(m_socket, m_session);
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    //read std err
+    while (1) {
+        int rc;
+        do
+        {
+            rc = libssh2_channel_read_stderr(m_channel, buffer, sizeof(buffer));
+            if(rc > 0)
+            {
+                stderr.append(buffer);
+            }
+            else
+            {
+                if(rc != LIBSSH2_ERROR_EAGAIN)
+                {
+                    fprintf(stderr, "libssh2 channel returned");
+                }
+            }
+        }
+        while(rc > 0);
+
+        if(rc == LIBSSH2_ERROR_EAGAIN)
+        {
+            waitsocket(m_socket, m_session);
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    while ((rc = libssh2_channel_close(m_channel)) == LIBSSH2_ERROR_EAGAIN) {
+        waitsocket(m_socket, session);
+    }
+    if(rc == 0)
+    {
+        int exit_code = libssh2_channel_get_exit_status(m_channel);
+        char *exit_sig = NULL;
+        libssh2_channel_get_exit_signal(m_channel, &exit_sig, NULL, NULL, NULL, NULL, NULL);
+
+        fprintf(stderr, "exit code:%s, exit signal:%s", exit_code, exit_sig);
+    }
+
+    libssh2_channel_free(m_channel);
+    m_channel = NULL;
+
+    return 0;
 }
 
 bool AntCommander::scpTo(const QString &src, const QString &des)
