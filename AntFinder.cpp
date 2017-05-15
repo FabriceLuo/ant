@@ -1,4 +1,6 @@
 #include "AntFinder.h"
+#include <sys/types.h>
+#include <sys/socket.h>
 
 AntFinder::AntFinder()
 {
@@ -12,7 +14,7 @@ bool AntFinder::connect(const QString &host, const QString &username, const QStr
     if(m_session == NULL)
     {
         m_session = libssh2_session_init();
-        if(session == NULL)
+        if(m_session == NULL)
         {
             printf("init libssh2 session error");
             return false;
@@ -23,7 +25,7 @@ bool AntFinder::connect(const QString &host, const QString &username, const QStr
     if(m_socket < 0)
     {
         //create socket for libssh2
-        m_socket = socket(AF_INET, SOCK_STTREAM, 0);
+        m_socket = socket(AF_INET, SOCK_STREAM, 0);
         if(m_socket < 0)
         {
             printf("create socket for libssh2 failed");
@@ -39,7 +41,7 @@ bool AntFinder::connect(const QString &host, const QString &username, const QStr
     }
 
     //auth
-    while ((rc = libssh2_userauth_password(m_session, username.data(), password.data())) == LIBSSH2_ERROR_EAGAIN);
+    while ((rc = libssh2_userauth_password(m_session, username.toLatin1().data(), password.toLatin1().data())) == LIBSSH2_ERROR_EAGAIN);
     if(rc)
     {
         printf("auth to server failed");

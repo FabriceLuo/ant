@@ -1,6 +1,9 @@
 #include "AntCommander.h"
 #include <QStringList>
 #include <QString>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <stdio.h>
 
 AntCommander::AntCommander()
 {
@@ -26,7 +29,7 @@ bool AntCommander::connect(const QString &host, const QString &username, const Q
     if(m_session == NULL)
     {
         m_session = libssh2_session_init();
-        if(session == NULL)
+        if(m_session == NULL)
         {
             printf("init libssh2 session error");
             return false;
@@ -37,7 +40,7 @@ bool AntCommander::connect(const QString &host, const QString &username, const Q
     if(m_socket < 0)
     {
         //create socket for libssh2
-        m_socket = socket(AF_INET, SOCK_STTREAM, 0);
+        m_socket = socket(AF_INET, SOCK_STREAM, 0);
         if(m_socket < 0)
         {
             printf("create socket for libssh2 failed");
@@ -53,7 +56,7 @@ bool AntCommander::connect(const QString &host, const QString &username, const Q
     }
 
     //auth
-    while ((rc = libssh2_userauth_password(m_session, username.data(), password.data())) == LIBSSH2_ERROR_EAGAIN);
+    while ((rc = libssh2_userauth_password(m_session, username.toLatin1().data(), password.toLatin1().data())) == LIBSSH2_ERROR_EAGAIN);
     if(rc)
     {
         printf("auth to server failed");
@@ -80,15 +83,16 @@ bool AntCommander::checkConnect()
     return true;
 }
 
-int AntCommander::exec(const QString &cmd, const QStringList &param, QString &stdout, QString &stderr)
+int AntCommander::exec(const QString &cmd, const QStringList &param, QString &std_out, QString &std_err)
 {
     if(!checkConnect())
     {
         return -1;
     }
-
-    cmd.append(param.join(' '));
-    char *exec_cmd = cmd.toLatin1().data();
+    int rc;
+    QString cmd_str=cmd;
+    cmd_str.append(param.join(' '));
+    char *exec_cmd = cmd_str.toLatin1().data();
 
     while ((rc = libssh2_channel_exec(m_channel, exec_cmd)) == LIBSSH2_ERROR_EAGAIN) {
         waitsocket(m_socket, m_session);
@@ -108,7 +112,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
             rc = libssh2_channel_read(m_channel, buffer, sizeof(buffer));
             if(rc > 0)
             {
-                stdout.append(buffer);
+                std_out.append(buffer);
             }
             else
             {
@@ -138,7 +142,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
             rc = libssh2_channel_read_stderr(m_channel, buffer, sizeof(buffer));
             if(rc > 0)
             {
-                stderr.append(buffer);
+                std_err.append(buffer);
             }
             else
             {
@@ -161,7 +165,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
     }
 
     while ((rc = libssh2_channel_close(m_channel)) == LIBSSH2_ERROR_EAGAIN) {
-        waitsocket(m_socket, session);
+        waitsocket(m_socket, m_session);
     }
     if(rc == 0)
     {
@@ -169,7 +173,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
         char *exit_sig = NULL;
         libssh2_channel_get_exit_signal(m_channel, &exit_sig, NULL, NULL, NULL, NULL, NULL);
 
-        fprintf(stderr, "exit code:%s, exit signal:%s", exit_code, exit_sig);
+        fprintf(stderr, "exit code:%d, exit signal:%s", exit_code, exit_sig);
     }
 
     libssh2_channel_free(m_channel);
@@ -186,6 +190,36 @@ bool AntCommander::scpTo(const QString &src, const QString &des)
 bool AntCommander::scpFrom(const QString &src, const QString &des)
 {
     return true;
+}
+
+int AntCommander::waitsocket(int socket_fd, LIBSSH2_SESSION *session)
+{
+    struct timeval timeout;
+    int rc;
+    fd_set fd;
+    fd_set *writefd = NULL;
+    fd_set *readfd = NULL;
+    int dir;
+
+    timeout.tv_sec = 10;
+    timeout.tv_usec = 0;
+
+    FD_ZERO(&fd);
+
+    FD_SET(socket_fd, &fd);
+
+    /* now make sure we wait in the correct direction */
+    dir = libssh2_session_block_directions(session);
+
+    if(dir & LIBSSH2_SESSION_BLOCK_INBOUND)
+        readfd = &fd;
+
+    if(dir & LIBSSH2_SESSION_BLOCK_OUTBOUND)
+        writefd = &fd;
+
+    rc = select(socket_fd + 1, readfd, writefd, NULL, &timeout);
+
+    return rc;
 }
 
 

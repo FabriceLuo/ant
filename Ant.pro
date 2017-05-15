@@ -26,7 +26,8 @@ SOURCES += main.cpp\
     AntCommander.cpp \
     AntVersion.cpp \
     AntSvn.cpp \
-    AntGit.cpp
+    AntGit.cpp \
+    AntCommon.cpp
 
 HEADERS  += Ant.h \
     CheckboxHeaderView.h \
@@ -40,7 +41,10 @@ HEADERS  += Ant.h \
     AntCommander.h \
     AntVersion.h \
     AntSvn.h \
-    AntGit.h
+    AntGit.h \
+    AntCommon.h
 
 RESOURCES += \
     ant.qrc
+
+LIBS += -lssh2

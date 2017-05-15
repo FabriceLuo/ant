@@ -1,6 +1,7 @@
 #include "AntSvn.h"
 
-AntSvn::AntSvn()
+AntSvn::AntSvn(QString dir)
+    :AntVersion(dir)
 {
 
 }
