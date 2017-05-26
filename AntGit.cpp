@@ -48,7 +48,7 @@ QList<VersionEntry> AntGit::getchangeList()
         VersionEntry node;
         node.path    = fileInfo.absoluteFilePath();
         node.status  = !entryList.at(0).compare("M") ? EntryModify : EntryAdd;
-        node.name    = fileInfo.baseName();
+        node.name    = fileInfo.fileName();
         node.size    = fileInfo.size();
 
         list.push_back(node);

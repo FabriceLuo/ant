@@ -5,3 +5,9 @@ AntSvn::AntSvn(QString dir)
 {
 
 }
+
+QList<VersionEntry> AntSvn::getchangeList()
+{
+    QList<VersionEntry> list;
+    return list;
+}

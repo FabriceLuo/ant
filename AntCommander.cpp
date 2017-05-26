@@ -3,16 +3,21 @@
 #include <QString>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <fstream>
 
 AntCommander::AntCommander()
 {
-
+    m_session = NULL;
 }
 
 AntCommander::AntCommander(const QString &host, const QString &username, const QString &password):
-    m_host(host), m_username(username), m_password(password)
+    m_host(host), m_username(username), m_password(password), m_socket(-1)
 {
+    m_session = NULL;
 }
 
 void AntCommander::init(const QString &host, const QString &username, const QString &password)
@@ -22,9 +27,10 @@ void AntCommander::init(const QString &host, const QString &username, const QStr
     m_password  = password;
 }
 
-bool AntCommander::connect(const QString &host, const QString &username, const QString &password)
+bool AntCommander::hostConnect(const QString &host, const QString &username, const QString &password)
 {
     int rc;
+    struct sockaddr_in sin;
     //init session
     if(m_session == NULL)
     {
@@ -44,6 +50,17 @@ bool AntCommander::connect(const QString &host, const QString &username, const Q
         if(m_socket < 0)
         {
             printf("create socket for libssh2 failed");
+            return false;
+        }
+
+        //connect to sshd
+        sin.sin_family = AF_INET;
+        sin.sin_port = htons(22);
+        sin.sin_addr.s_addr = inet_addr(host.toLatin1().data());
+
+        if(connect(m_socket, (struct sockaddr*)&sin, sizeof(struct sockaddr_in)) != 0)
+        {
+            printf("connect to sshd failed");
             return false;
         }
     }
@@ -78,20 +95,21 @@ bool AntCommander::checkConnect()
 {
     if(m_session == NULL)
     {
-        return connect(m_host, m_username, m_password);
+        return hostConnect(m_host, m_username, m_password);
     }
     return true;
 }
 
-int AntCommander::exec(const QString &cmd, const QStringList &param, QString &std_out, QString &std_err)
+int AntCommander::exec(const QString &cmd, const QStringList &param, QString &stdOut, QString &stdErr)
 {
     if(!checkConnect())
     {
         return -1;
     }
     int rc;
-    QString cmd_str=cmd;
-    cmd_str.append(param.join(' '));
+    QStringList cmdList = param;
+    cmdList.push_front(cmd);
+    QString cmd_str = cmdList.join(' ');
     char *exec_cmd = cmd_str.toLatin1().data();
 
     while ((rc = libssh2_channel_exec(m_channel, exec_cmd)) == LIBSSH2_ERROR_EAGAIN) {
@@ -112,7 +130,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
             rc = libssh2_channel_read(m_channel, buffer, sizeof(buffer));
             if(rc > 0)
             {
-                std_out.append(buffer);
+                stdOut.append(buffer);
             }
             else
             {
@@ -142,7 +160,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
             rc = libssh2_channel_read_stderr(m_channel, buffer, sizeof(buffer));
             if(rc > 0)
             {
-                std_err.append(buffer);
+                stdErr.append(buffer);
             }
             else
             {
@@ -189,7 +207,54 @@ bool AntCommander::scpTo(const QString &src, const QString &des)
 
 bool AntCommander::scpFrom(const QString &src, const QString &des)
 {
+    if(!checkConnect())
+    {
+        return false;
+    }
+    /*
+    //prepare local file
+    std::ofstream desOut;
+    desOut.open(des);
+
+    //scp from remoute
+    struct stat fileinfo;
+    LIBSSH2_CHANNEL *channel = libssh2_scp_recv(m_session, src.toLatin1().data(), &fileinfo);
+    if(!channel)
+    {
+        return false;
+    }
+
+    //read file data from channel
+    int got = 0, rc;
+    char buffer[1024];
+    while (got < fileinfo.st_size) {
+        int toRead = sizeof(buffer);
+        if(fileinfo.st_size - got < toRead)
+        {
+            toRead = fileinfo.st_size - got;
+        }
+        //read data
+        rc = libssh2_channel_read(channel, buffer, toRead);
+        if(rc > 0)
+        {
+            //write to des file
+            desOut.write(buffer, rc);
+        }
+        else if(rc < 0)
+        {
+            goto failed;
+        }
+        got += rc;
+    }
+
+    libssh2_channel_free(channel);
     return true;
+failed:
+    if(desOut.is_open())
+    {
+        desOut.close();
+    }
+    */
 }
 
 int AntCommander::waitsocket(int socket_fd, LIBSSH2_SESSION *session)

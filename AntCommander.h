@@ -14,7 +14,7 @@ public:
 
     void init(const QString &host, const QString &username, const QString &password);
 
-    int exec(const QString &cmd, const QStringList &param, QString &std_out, QString &std_err);
+    int exec(const QString &cmd, const QStringList &param, QString &stdOut, QString &stdErr);
     bool scpTo(const QString &src, const QString &des);
     bool scpFrom(const QString &src, const QString &des);
 
@@ -25,7 +25,7 @@ private:
     QString m_host, m_username, m_password;
 
     bool checkConnect();
-    bool connect(const QString &host, const QString &username, const QString &password);
+    bool hostConnect(const QString &host, const QString &username, const QString &password);
     int waitsocket(int socket_fd, LIBSSH2_SESSION *session);
 };
 

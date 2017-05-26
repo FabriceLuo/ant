@@ -7,6 +7,7 @@ class AntSvn : public AntVersion
 {
 public:
     AntSvn(QString dir);
+    virtual QList<VersionEntry> getchangeList();
 };
 
 #endif // ANTSVN_H

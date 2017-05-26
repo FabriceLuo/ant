@@ -15,8 +15,6 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         Ant.cpp \
-    CheckboxHeaderView.cpp \
-    CheckboxTable.cpp \
     AntSyncer.cpp \
     AntSetting.cpp \
     AntBackup.cpp \
@@ -30,8 +28,6 @@ SOURCES += main.cpp\
     AntCommon.cpp
 
 HEADERS  += Ant.h \
-    CheckboxHeaderView.h \
-    CheckboxTable.h \
     AntSyncer.h \
     AntSetting.h \
     AntBackup.h \
@@ -44,7 +40,11 @@ HEADERS  += Ant.h \
     AntGit.h \
     AntCommon.h
 
+INCLUDEPATH += /usr/local/include
+
+
 RESOURCES += \
     ant.qrc
 
-LIBS += -lssh2
+LIBS += -lssh2 \
+    -llog4cplus

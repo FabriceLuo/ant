@@ -27,4 +27,10 @@ public:
     EntryStatus status;
 };
 
+enum VersionType {
+    VersionTypeErr,
+    VersionTypeSvn,
+    VersionTypeGit
+};
+
 #endif // ANTCOMMON_H
