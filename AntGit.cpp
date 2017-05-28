@@ -13,12 +13,8 @@ AntGit::AntGit(QString dir)
 QList<VersionEntry> AntGit::getchangeList()
 {
     QString cmd("git");
-    QStringList param = {
-        "-C",
-        getWorkDir(),
-        "status",
-        "-s"
-    };
+    QStringList param;
+    param << "-C" << getWorkDir() << "status" << "-s";
 
     QProcess process;
     process.start(cmd, param);

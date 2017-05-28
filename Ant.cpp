@@ -28,6 +28,8 @@
 Ant::Ant(QWidget *parent)
     : QMainWindow(parent)
 {
+    m_headerTitle << "" << "文件名" << "本地路径" << "远程路径" << "修改时间";
+    m_headerWidth << 24 << 150 << 420 << 420 << 154;
     m_table = new QTableWidget();
 
     setHorizontalHeader(m_headerTitle);

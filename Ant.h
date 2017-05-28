@@ -44,20 +44,8 @@ public:
     ~Ant();
 
 private:
-    QStringList m_headerTitle = {
-        "",
-        "文件名",
-        "本地路径",
-        "远程路径",
-        "修改时间"
-    };
-    QList<int> m_headerWidth = {
-        24,
-        150,
-        420,
-        420,
-        154
-    };
+    QStringList m_headerTitle;
+    QList<int> m_headerWidth;
     //private var for components
     QString m_versionPath;
 
