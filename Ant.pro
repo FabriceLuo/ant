@@ -18,7 +18,6 @@ SOURCES += main.cpp\
     AntSyncer.cpp \
     AntSetting.cpp \
     AntBackup.cpp \
-    AntLog.cpp \
     AntTransfer.cpp \
     AntFinder.cpp \
     AntCommander.cpp \
@@ -31,7 +30,6 @@ HEADERS  += Ant.h \
     AntSyncer.h \
     AntSetting.h \
     AntBackup.h \
-    AntLog.h \
     AntTransfer.h \
     AntFinder.h \
     AntCommander.h \
@@ -46,5 +44,9 @@ INCLUDEPATH += /usr/local/include
 RESOURCES += \
     ant.qrc
 
-LIBS += -lssh2 \
-    -llog4cplus
+win32: LIBS += -lws2_32
+
+win32: LIBS += -L$$PWD/../../AntDep/install/libssh2/lib/ -llibssh2
+
+INCLUDEPATH += $$PWD/../../AntDep/install/libssh2/include
+DEPENDPATH += $$PWD/../../AntDep/install/libssh2/include

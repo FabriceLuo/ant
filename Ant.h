@@ -13,6 +13,7 @@ class QLineEdit;
 class QLabel;
 class QWidget;
 class VersionEntry;
+class AntCommander;
 
 enum SvnEntryStatus
 {
@@ -27,7 +28,7 @@ class SvnEntry
 public:
     QString path;
     QString name;
-    int64_t size;
+    int size;
     SvnEntryStatus status;
 };
 
@@ -44,20 +45,10 @@ public:
     ~Ant();
 
 private:
-    QStringList m_headerTitle = {
-        "",
-        "文件名",
-        "本地路径",
-        "远程路径",
-        "修改时间"
-    };
-    QList<int> m_headerWidth = {
-        24,
-        150,
-        420,
-        420,
-        154
-    };
+    QStringList m_headerTitle;
+
+    QList<int> m_headerWidth;
+	
     //private var for components
     QString m_versionPath;
 
@@ -66,7 +57,12 @@ private:
     QLabel     *m_addrLabel;
     QWidget    *m_mainWidget;
 
+    QLabel     *m_versionAddrLabel;
+    QLineEdit  *m_versionAddrEdit;
+
     QString m_svnAddr;
+
+    AntCommander *commander;
 
     QList<VersionEntry> getChangeList(QString &path);
     void setHorizontalHeader(QStringList header);

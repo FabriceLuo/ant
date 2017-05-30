@@ -8,11 +8,15 @@ AntFinder::AntFinder(AntCommander *commander)
 
 QStringList AntFinder::getFindDirList()
 {
-    QStringList list = {
-        "/home/mike"
-    };
+	QStringList list;
+	list << "/home/mike";
 
     return list;
+}
+
+int AntFinder::getFileDiffRate(const QString &local, const QString &remote)
+{
+
 }
 
 QStringList AntFinder::find(const QString &filename)
@@ -27,35 +31,50 @@ QStringList AntFinder::find(const QString &filename)
     QStringList::Iterator end   = dirList.end();
 
     QString cmd("find");
-    QString stdout, stderr;
+    QString stdOut, stdErr;
 
     QStringList fileList;
 
     while (begin != end) {
-        QStringList param = {
-            *begin,
-            "-name",
-            filename
-        };
-        if(m_commander->exec(cmd, param, stdout, stderr) != 0)
+		QStringList param;
+		param << *begin << "-name" << filename;
+        if(m_commander->exec(cmd, param, stdOut, stdErr) != 0)
         {
 
         }
-        if(! stdout.isEmpty())
+        if(! stdOut.isEmpty())
         {
-            QStringList lines = stdout.split(QRegularExpression("\n"));
+            QStringList lines = stdOut.split(QRegularExpression("\n"));
             int lineCount = lines.count();
 
             for(int i = 0; i < lineCount; i++)
             {
-                QString temp;
-                temp = *begin + lines.at(i);
-                fileList.push_back(temp);
+                fileList.push_back(lines.at(i));
             }
         }
         begin++;
     }
     return fileList;
+}
+
+QString AntFinder::findDiffLatest(const QString &filename)
+{
+    //get all file list of same name
+    QStringList foundList = find(filename);
+    QString latestDiff;
+    int latestDiffRate = -1;
+    if(foundList.count())
+    {
+        QStringList::iterator begin = foundList.begin();
+        QStringList::iterator end = foundList.end();
+
+        while(begin != end)
+        {
+            int tempDiffRate = getFileDiffRate()
+            begin++;
+        }
+    }
+    return latestDiff;
 }
 
 

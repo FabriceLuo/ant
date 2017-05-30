@@ -2,9 +2,7 @@
 #include <QStringList>
 #include <QString>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <WinSock2.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <fstream>
@@ -42,9 +40,19 @@ bool AntCommander::hostConnect(const QString &host, const QString &username, con
         }
         libssh2_session_set_blocking(m_session, 0);
     }
+#ifdef WIN32
+    WSADATA wsadata;
+    int err;
 
+    err = WSAStartup(MAKEWORD(2,0), &wsadata);
+    if (err != 0) {
+        fprintf(stderr, "WSAStartup failed with error: %d\n", err);
+        return 1;
+    }
+#endif
     if(m_socket < 0)
     {
+
         //create socket for libssh2
         m_socket = socket(AF_INET, SOCK_STREAM, 0);
         if(m_socket < 0)
@@ -58,7 +66,7 @@ bool AntCommander::hostConnect(const QString &host, const QString &username, con
         sin.sin_port = htons(22);
         sin.sin_addr.s_addr = inet_addr(host.toLatin1().data());
 
-        if(connect(m_socket, (struct sockaddr*)&sin, sizeof(struct sockaddr_in)) != 0)
+        if(::connect(m_socket, (struct sockaddr*)&sin, sizeof(struct sockaddr_in)) != 0)
         {
             printf("connect to sshd failed");
             return false;
@@ -77,14 +85,6 @@ bool AntCommander::hostConnect(const QString &host, const QString &username, con
     if(rc)
     {
         printf("auth to server failed");
-        return false;
-    }
-
-    //open channel
-    while((m_channel = libssh2_channel_open_session(m_session)) == NULL && libssh2_session_last_error(m_session, NULL, NULL, 0) == LIBSSH2_ERROR_EAGAIN);
-    if(m_channel == NULL)
-    {
-        printf("open exec channel to server failed");
         return false;
     }
 
@@ -110,9 +110,16 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
     QStringList cmdList = param;
     cmdList.push_front(cmd);
     QString cmd_str = cmdList.join(' ');
-    char *exec_cmd = cmd_str.toLatin1().data();
-
-    while ((rc = libssh2_channel_exec(m_channel, exec_cmd)) == LIBSSH2_ERROR_EAGAIN) {
+    //QByteArray qbCmdStr = cmd_str.toLatin1();
+    //char *exec_cmd = qbCmdStr.data();
+    //open channel
+    while((m_channel = libssh2_channel_open_session(m_session)) == NULL && libssh2_session_last_error(m_session, NULL, NULL, 0) == LIBSSH2_ERROR_EAGAIN);
+    if(m_channel == NULL)
+    {
+        printf("open exec channel to server failed");
+        return false;
+    }
+    while ((rc = libssh2_channel_exec(m_channel, cmd_str.toStdString().c_str())) == LIBSSH2_ERROR_EAGAIN) {
         waitsocket(m_socket, m_session);
     }
     if(rc != 0)
@@ -136,7 +143,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
             {
                 if(rc != LIBSSH2_ERROR_EAGAIN)
                 {
-                    fprintf(stderr, "libssh2 channel returned");
+                    fprintf(stderr, "libssh2 channel returned\n");
                 }
             }
         }
@@ -166,7 +173,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
             {
                 if(rc != LIBSSH2_ERROR_EAGAIN)
                 {
-                    fprintf(stderr, "libssh2 channel returned");
+                    fprintf(stderr, "libssh2 channel returned\n");
                 }
             }
         }
@@ -191,7 +198,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
         char *exit_sig = NULL;
         libssh2_channel_get_exit_signal(m_channel, &exit_sig, NULL, NULL, NULL, NULL, NULL);
 
-        fprintf(stderr, "exit code:%d, exit signal:%s", exit_code, exit_sig);
+        fprintf(stderr, "exit code:%d, exit signal:%s\n", exit_code, exit_sig);
     }
 
     libssh2_channel_free(m_channel);
@@ -255,6 +262,7 @@ failed:
         desOut.close();
     }
     */
+	return 1;
 }
 
 int AntCommander::waitsocket(int socket_fd, LIBSSH2_SESSION *session)

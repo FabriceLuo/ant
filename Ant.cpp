@@ -1,5 +1,5 @@
+﻿
 #include "Ant.h"
-
 #include <QTimerEvent>
 #include <QIcon>
 #include <QStringList>
@@ -23,11 +23,17 @@
 #include "AntSvn.h"
 #include "AntFinder.h"
 #include "AntCommander.h"
-#include "AntLog.h"
+#include <QDateTime>
+#include <QColor>
 
-Ant::Ant(QWidget *parent)
-    : QMainWindow(parent)
+
+Ant::Ant(QWidget *parent) :
+    QMainWindow(parent),
+    commander(NULL)
 {
+    m_headerTitle << tr("") << tr("文件名") << tr("本地路径") << tr("远程路径") << tr("修改时间") << tr("状态");
+    m_headerWidth << 24 << 150 << 420 << 420 << 154 << 30;
+
     m_table = new QTableWidget();
 
     setHorizontalHeader(m_headerTitle);
@@ -45,12 +51,18 @@ Ant::Ant(QWidget *parent)
     m_addrEdit = new QLineEdit();
     m_addrEdit->setFixedWidth(220);
 
-    m_addrLabel         = new QLabel("集群地址：");
+    m_addrLabel         = new QLabel("集群地址");
     m_updateButton      = new QPushButton("更新列表");
     m_syncButton        = new QPushButton("同步");
 
+    m_versionAddrLabel  = new QLabel("代码目录");
+    m_versionAddrEdit   = new QLineEdit();
+    m_versionAddrEdit->setFixedWidth(400);
+
     handleLayout->addWidget(m_addrLabel);
     handleLayout->addWidget(m_addrEdit);
+    handleLayout->addWidget(m_versionAddrLabel);
+    handleLayout->addWidget(m_versionAddrEdit);
     handleLayout->addWidget(m_updateButton);
     handleLayout->addWidget(m_syncButton);
     handleLayout->addStretch();
@@ -65,7 +77,6 @@ Ant::Ant(QWidget *parent)
     setCentralWidget(m_mainWidget);
 
     connect(m_updateButton, SIGNAL(clicked(bool)), this, SLOT(showChangeList()));
-    logger.linfo("xxxxxxxxxxxxxxxxxx");
 }
 
 Ant::~Ant()
@@ -130,34 +141,77 @@ void Ant::setHorizontalHeaderWidth(QList<int> width)
 
 void Ant::showChangeList()
 {
-    logger.linfo("xxxxxxxxxxxxxxxxxx");
-    m_versionPath = m_addrEdit->text();
+    //get code location
+    m_versionPath = m_versionAddrEdit->text();
+    m_versionPath = "D:\\Code\\ant";
     QList<VersionEntry> changeList = getChangeList(m_versionPath);
 
     int count = changeList.count();
     setTableRowCount(count);
     QTableWidgetItem *item;
-    m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    //m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    AntCommander *commander = new AntCommander("192.168.122.132", "mike", "081126");
-
+    QString clusterIP = m_addrEdit->text();
+    clusterIP = "192.168.122.132";
+    if(clusterIP.isEmpty())
+    {
+        QMessageBox::warning(this, "Ant告警", "集群IP缺失");
+        return;
+    }
+    if(commander == NULL)
+    {
+        commander = new AntCommander(clusterIP, "mike", "081126");
+    }
+    AntFinder finder(commander);
+    m_table->clearContents();
     for(int i=0; i < count; i++)
     {
-        item = new QTableWidgetItem();
-        item->setCheckState(Qt::Checked);
-        m_table->setItem(i, 0, item);
+        for(int j = 0; j <6; j++)
+        {
+            item = new QTableWidgetItem();
+            m_table->setItem(i, j, item);
+        }
+        //check box
+        m_table->item(i, 0)->setCheckState(Qt::Checked);
 
-        m_table->setItem(i, 1, new QTableWidgetItem(changeList.at(i).name));
-        m_table->setItem(i, 2, new QTableWidgetItem(changeList.at(i).path));
+        //name
+        item = m_table->item(i, 1);
+        item->setText(changeList.at(i).name);
+        item->setFlags(item->flags() & (~Qt::ItemIsEditable));
+
+        //local path
+        item = m_table->item(i, 2);
+        item->setText(changeList.at(i).path);
+        item->setFlags(item->flags() & (~Qt::ItemIsEditable));
 
         //find suitable des file
-        AntFinder finder(commander);
         QStringList desList = finder.find(changeList.at(i).name);
         if(desList.count() > 0)
         {
-            m_table->setItem(i, 3, new QTableWidgetItem(desList.at(0)));
+            //remoute path
+            item = m_table->item(i, 3);
+            item->setText(desList.at(0));
+            item->setFlags(item->flags() | Qt::ItemIsEditable);
+
         }
 
+        //last modify time
+        QFileInfo fileInfo(changeList.at(i).path);
+        if(fileInfo.exists())
+        {
+            item = m_table->item(i, 4);
+            item->setText(fileInfo.lastModified().toString("HH:mm:ss MM-dd-yyyy"));
+            item->setFlags(item->flags() & (~Qt::ItemIsEditable));
+        }
+        else {
+            for(int j = 1; j <= 5; j++)
+            {
+                m_table->item(i, j)->setBackgroundColor(QColor(200, 200, 200));
+            }
+        }
+
+        //version status
+        m_table->item(i, 5)->setText(AntCommon::getEntryStatusString(changeList.at(i).status));
     }
 }
 
