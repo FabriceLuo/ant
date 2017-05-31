@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     AntVersion.cpp \
     AntSvn.cpp \
     AntGit.cpp \
-    AntCommon.cpp
+    AntCommon.cpp \
+    AntDiff.cpp
 
 HEADERS  += Ant.h \
     AntSyncer.h \
@@ -36,7 +37,8 @@ HEADERS  += Ant.h \
     AntVersion.h \
     AntSvn.h \
     AntGit.h \
-    AntCommon.h
+    AntCommon.h \
+    AntDiff.h
 
 INCLUDEPATH += /usr/local/include
 
