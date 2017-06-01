@@ -15,30 +15,30 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         Ant.cpp \
-    AntSyncer.cpp \
     AntSetting.cpp \
     AntBackup.cpp \
-    AntTransfer.cpp \
     AntFinder.cpp \
     AntCommander.cpp \
     AntVersion.cpp \
     AntSvn.cpp \
     AntGit.cpp \
     AntCommon.cpp \
-    AntDiff.cpp
+    AntDiff.cpp \
+    AntSync.cpp
+
 
 HEADERS  += Ant.h \
-    AntSyncer.h \
     AntSetting.h \
     AntBackup.h \
-    AntTransfer.h \
     AntFinder.h \
     AntCommander.h \
     AntVersion.h \
     AntSvn.h \
     AntGit.h \
     AntCommon.h \
-    AntDiff.h
+    AntDiff.h \
+    AntSync.h
+
 
 INCLUDEPATH += /usr/local/include
 
