@@ -42,4 +42,30 @@ enum VersionType {
     VersionTypeGit
 };
 
+class SyncEntry
+{
+public:
+    QString src;
+    QString des;
+};
+
+
+enum VersionTableCol {
+    VersionBegin = 0,
+    VersionCheck = VersionBegin,
+    VersionName,
+    VersionLocalPath,
+    VersionRemotePath,
+    VersionModifyTime,
+    VersionStatus,
+    VersionEnd = VersionStatus
+};
+
+class ClusterNode {
+public:
+    QString name;
+    QString ip;
+    bool online;
+};
+
 #endif // ANTCOMMON_H

@@ -14,6 +14,7 @@ class QLabel;
 class QWidget;
 class VersionEntry;
 class AntCommander;
+class AntDiff;
 
 enum SvnEntryStatus
 {
@@ -51,6 +52,7 @@ private:
 	
     //private var for components
     QString m_versionPath;
+    QString m_masterAddr;
 
     QPushButton *m_updateButton, *m_syncButton;
     QLineEdit  *m_addrEdit;
@@ -63,6 +65,7 @@ private:
     QString m_svnAddr;
 
     AntCommander *commander;
+    AntDiff *m_diff;
 
     QList<VersionEntry> getChangeList(QString &path);
     void setHorizontalHeader(QStringList header);
@@ -71,9 +74,21 @@ private:
 
 
     void setTableRowCount(int count);
+    QList<SyncEntry> getSyncFileList();
+
+    QString m_master, m_userName, m_password;
+    bool loadClusterInfo();
+    QString getMaster();
+    QString getUsername();
+    QString getPassword();
+
+    QLineEdit *m_userNameEdit, *m_passwordEdit;
+    QLabel *m_userNameLabel, *m_passwordLabel;
+
 
 private slots:
     void showChangeList();
+    void syncClusterCode();
 };
 
 

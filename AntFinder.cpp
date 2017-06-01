@@ -14,11 +14,6 @@ QStringList AntFinder::getFindDirList()
     return list;
 }
 
-int AntFinder::getFileDiffRate(const QString &local, const QString &remote)
-{
-
-}
-
 QStringList AntFinder::find(const QString &filename)
 {
     if(NULL != m_commander)
@@ -40,7 +35,7 @@ QStringList AntFinder::find(const QString &filename)
 		param << *begin << "-name" << filename;
         if(m_commander->exec(cmd, param, stdOut, stdErr) != 0)
         {
-
+            return fileList;
         }
         if(! stdOut.isEmpty())
         {
@@ -49,32 +44,15 @@ QStringList AntFinder::find(const QString &filename)
 
             for(int i = 0; i < lineCount; i++)
             {
-                fileList.push_back(lines.at(i));
+                if(!lines.at(i).isEmpty())
+                {
+                   fileList.push_back(lines.at(i));
+                }
             }
         }
         begin++;
     }
     return fileList;
-}
-
-QString AntFinder::findDiffLatest(const QString &filename)
-{
-    //get all file list of same name
-    QStringList foundList = find(filename);
-    QString latestDiff;
-    int latestDiffRate = -1;
-    if(foundList.count())
-    {
-        QStringList::iterator begin = foundList.begin();
-        QStringList::iterator end = foundList.end();
-
-        while(begin != end)
-        {
-            int tempDiffRate = getFileDiffRate()
-            begin++;
-        }
-    }
-    return latestDiff;
 }
 
 

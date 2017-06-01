@@ -110,8 +110,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
     QStringList cmdList = param;
     cmdList.push_front(cmd);
     QString cmd_str = cmdList.join(' ');
-    //QByteArray qbCmdStr = cmd_str.toLatin1();
-    //char *exec_cmd = qbCmdStr.data();
+    libssh2_session_set_blocking(m_session, 0);
     //open channel
     while((m_channel = libssh2_channel_open_session(m_session)) == NULL && libssh2_session_last_error(m_session, NULL, NULL, 0) == LIBSSH2_ERROR_EAGAIN);
     if(m_channel == NULL)
@@ -134,6 +133,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
         int rc;
         do
         {
+            memset(buffer, 0, sizeof(buffer));
             rc = libssh2_channel_read(m_channel, buffer, sizeof(buffer));
             if(rc > 0)
             {
@@ -164,6 +164,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
         int rc;
         do
         {
+            memset(buffer, 0, sizeof(buffer));
             rc = libssh2_channel_read_stderr(m_channel, buffer, sizeof(buffer));
             if(rc > 0)
             {
@@ -192,9 +193,10 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
     while ((rc = libssh2_channel_close(m_channel)) == LIBSSH2_ERROR_EAGAIN) {
         waitsocket(m_socket, m_session);
     }
+    int exit_code = -1;
     if(rc == 0)
     {
-        int exit_code = libssh2_channel_get_exit_status(m_channel);
+        exit_code = libssh2_channel_get_exit_status(m_channel);
         char *exit_sig = NULL;
         libssh2_channel_get_exit_signal(m_channel, &exit_sig, NULL, NULL, NULL, NULL, NULL);
 
@@ -204,12 +206,98 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
     libssh2_channel_free(m_channel);
     m_channel = NULL;
 
-    return 0;
+    return exit_code;
 }
 
 bool AntCommander::scpTo(const QString &src, const QString &des)
 {
-    return true;
+    if(!checkConnect())
+    {
+        return false;
+    }
+    bool success = true;
+    //get send file info
+    struct stat fileInfo;
+    stat(src.toStdString().c_str(), &fileInfo);
+
+    //open channel for send file
+    libssh2_session_set_blocking(m_session, 1);
+    m_channel = libssh2_scp_send(m_session, des.toStdString().c_str(), fileInfo.st_mode & 0777, (unsigned long)fileInfo.st_size);
+    if(!m_channel)
+    {
+        char *errmsg;
+                int errlen;
+                int err = libssh2_session_last_error(m_session, &errmsg, &errlen, 0);
+                fprintf(stderr, "Unable to open a session: (%d) %s\n", err, errmsg);
+        fprintf(stderr, "open scp channel failed");
+        return false;
+    }
+
+    //prepare read data
+    char buffer[4096] = {0};
+    FILE *fpRead = fopen(src.toStdString().c_str(), "rb");
+    if(fpRead == NULL)
+    {
+        fprintf(stderr, "read src file failed");
+        return false;
+    }
+    //read and send
+    int rc = 0;
+    do
+    {
+        //read file data from src
+        int readCount = 0;
+        readCount = fread(buffer, sizeof(char), sizeof(buffer), fpRead);
+        if(readCount > 0)
+        {
+            char *ptr = buffer;
+            do
+            {
+                rc = libssh2_channel_write(m_channel, ptr, readCount);
+                if(rc < 0)
+                {
+                    fprintf(stderr, "write file content failed");
+                    break;
+                }
+                else {
+                    readCount -= rc;
+                    ptr += rc;
+                }
+            }
+            while(readCount);
+        }
+        //got file end
+        if(readCount < sizeof(buffer))
+        {
+            if(feof(fpRead))
+            {
+                break;
+            }
+            if(ferror(fpRead))
+            {
+                success = false;
+                break;
+            }
+        }
+    }
+    while(1);
+
+    //close resource
+    libssh2_channel_send_eof(m_channel);
+    libssh2_channel_wait_eof(m_channel);
+    libssh2_channel_wait_closed(m_channel);
+    if(fpRead != NULL)
+    {
+        fclose(fpRead);
+        fpRead = NULL;
+    }
+    if(m_channel != NULL)
+    {
+        libssh2_channel_free(m_channel);
+        m_channel = NULL;
+    }
+
+    return success;
 }
 
 bool AntCommander::scpFrom(const QString &src, const QString &des)

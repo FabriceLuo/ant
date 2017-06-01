@@ -3,6 +3,8 @@
 
 #include <QString>
 #include <QStringList>
+#include <QMessageBox>
+
 #include <libssh2.h>
 #include "libssh2_config.h"
 
