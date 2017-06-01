@@ -15,10 +15,8 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         Ant.cpp \
-    AntSyncer.cpp \
     AntSetting.cpp \
     AntBackup.cpp \
-    AntTransfer.cpp \
     AntFinder.cpp \
     AntCommander.cpp \
     AntVersion.cpp \
@@ -28,10 +26,8 @@ SOURCES += main.cpp\
     AntDiff.cpp
 
 HEADERS  += Ant.h \
-    AntSyncer.h \
     AntSetting.h \
     AntBackup.h \
-    AntTransfer.h \
     AntFinder.h \
     AntCommander.h \
     AntVersion.h \
