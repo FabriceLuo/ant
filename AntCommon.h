@@ -61,10 +61,19 @@ enum VersionTableCol {
     VersionEnd = VersionStatus
 };
 
+enum NodeStatus {
+    NodeStatusUnkown,
+    NodeStatusOff,
+    NodeStatusOn,
+    NodeStatusError
+};
+
 class ClusterNode {
 public:
     QString name;
     QString ip;
+    QString username;
+    QString password;
     bool online;
 };
 

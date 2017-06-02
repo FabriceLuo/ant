@@ -16,6 +16,10 @@ AntCommander::AntCommander(const QString &host, const QString &username, const Q
     m_host(host), m_username(username), m_password(password), m_socket(-1)
 {
     m_session = NULL;
+
+    m_node.username = username;
+    m_node.password = password;
+    m_node.ip = host;
 }
 
 void AntCommander::init(const QString &host, const QString &username, const QString &password)
@@ -350,7 +354,12 @@ failed:
         desOut.close();
     }
     */
-	return 1;
+    return 1;
+}
+
+ClusterNode AntCommander::getCurrentNode()
+{
+    return m_node;
 }
 
 int AntCommander::waitsocket(int socket_fd, LIBSSH2_SESSION *session)

@@ -40,6 +40,9 @@
 #include <errno.h>
 #include <stdio.h>
 #include <ctype.h>
+
+#include "AntCommon.h"
+
 class AntCommander
 {
 public:
@@ -52,11 +55,15 @@ public:
     bool scpTo(const QString &src, const QString &des);
     bool scpFrom(const QString &src, const QString &des);
 
+    ClusterNode getCurrentNode();
+
 private:
     LIBSSH2_SESSION *m_session;
     LIBSSH2_CHANNEL *m_channel;
     int m_socket;
     QString m_host, m_username, m_password;
+
+    ClusterNode m_node;
 
     bool checkConnect();
     bool hostConnect(const QString &host, const QString &username, const QString &password);

@@ -31,6 +31,7 @@
 
 #include "AntDiff.h"
 #include "AntSync.h"
+#include "AntClusterSetting.h"
 
 
 Ant::Ant(QWidget *parent) :

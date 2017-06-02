@@ -1,5 +1,6 @@
 #include "AntFinder.h"
 #include <QRegularExpression>
+#include "AntClusterSetting.h"
 
 AntFinder::AntFinder(AntCommander *commander)
 {
@@ -8,8 +9,13 @@ AntFinder::AntFinder(AntCommander *commander)
 
 QStringList AntFinder::getFindDirList()
 {
-	QStringList list;
-	list << "/home/mike";
+    AntClusterSetting clusterSetting;
+    QStringList list;
+    if(! clusterSetting.getGlobalSearchDir(list))
+    {
+        fprintf(stderr, "get global search dir failed");
+        list.clear();
+    }
 
     return list;
 }
@@ -18,7 +24,6 @@ QStringList AntFinder::find(const QString &filename)
 {
     if(NULL != m_commander)
     {
-
     }
     QStringList dirList = getFindDirList();
 
