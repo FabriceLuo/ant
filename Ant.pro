@@ -25,7 +25,9 @@ SOURCES += main.cpp\
     AntCommon.cpp \
     AntDiff.cpp \
     AntSync.cpp \
-    AntClusterSetting.cpp
+    AntClusterSetting.cpp \
+    AntSettingDialog.cpp \
+    AntClusterSettingDialog.cpp
 
 
 HEADERS  += Ant.h \
@@ -39,7 +41,9 @@ HEADERS  += Ant.h \
     AntCommon.h \
     AntDiff.h \
     AntSync.h \
-    AntClusterSetting.h
+    AntClusterSetting.h \
+    AntSettingDialog.h \
+    AntClusterSettingDialog.h
 
 
 INCLUDEPATH += /usr/local/include

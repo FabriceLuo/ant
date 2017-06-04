@@ -1,4 +1,4 @@
-#ifndef ANT_H
+﻿#ifndef ANT_H
 #define ANT_H
 
 #include <QMainWindow>
@@ -15,23 +15,13 @@ class QWidget;
 class VersionEntry;
 class AntCommander;
 class AntDiff;
+class QAction;
+class QComboBox;
+class QTabWidget;
+class QMenuBar;
+class QMenu;
 
-enum SvnEntryStatus
-{
-    SvnEntryError,
-    SvnEntryAdd,
-    SvnEntryModify,
-    SvnEntryDelete
-};
 
-class SvnEntry
-{
-public:
-    QString path;
-    QString name;
-    int size;
-    SvnEntryStatus status;
-};
 
 class Ant : public QMainWindow
 {
@@ -41,54 +31,93 @@ public:
     Ant(QWidget *parent = 0);
     QTableWidget *m_table;
     QHeaderView *m_headerView;
-    int m_timerID;
-    void timerEvent(QTimerEvent *event);
     ~Ant();
 
 private:
-    QStringList m_headerTitle;
-
-    QList<int> m_headerWidth;
+    QStringList                 m_headerTitle;
+    QList<int>                  m_headerWidth;
 	
     //private var for components
-    QString m_versionPath;
-    QString m_masterAddr;
+    QString                     m_versionPath;
+    QString                     m_masterAddr;
 
     QPushButton *m_updateButton, *m_syncButton;
-    QLineEdit  *m_addrEdit;
-    QLabel     *m_addrLabel;
+
     QWidget    *m_mainWidget;
-
-    QLabel     *m_versionAddrLabel;
-    QLineEdit  *m_versionAddrEdit;
-
-    QString m_svnAddr;
 
     AntCommander *commander;
     AntDiff *m_diff;
 
-    QList<VersionEntry> getChangeList(QString &path);
-    void setHorizontalHeader(QStringList header);
-    void setHorizontalHeaderWidth(QList<int> width);
     VersionType getVersionType(QString path);
 
+    void setHorizontalHeader(QStringList header);
+    void setHorizontalHeaderWidth(QList<int> width);
 
-    void setTableRowCount(int count);
+
+    QList<VersionEntry> getChangeList(QString &path);
     QList<SyncEntry> getSyncFileList();
 
-    QString m_master, m_userName, m_password;
-    bool loadClusterInfo();
-    QString getMaster();
-    QString getUsername();
-    QString getPassword();
+    //
+    ClusterNode *m_curNode;
+    ClusterNode getCurrentNode();
 
-    QLineEdit *m_userNameEdit, *m_passwordEdit;
-    QLabel *m_userNameLabel, *m_passwordLabel;
+    //reiplemented event
+    void contextMenuEvent(QContextMenuEvent *event);
+
+    void setTableRowCount(int count);
+
+    //context actions
+    //file op
+    QAction *m_openDirAction;
+    QAction *m_editFileAction;
+    //select
+    QAction *m_selectAllAction;
+    QAction *m_selectNoneAction;
+    //version control
+    QAction *m_patchAction;
+    QAction *m_diffAction;
+    QAction *m_blameAction;
+
+    //cluster info
+    QComboBox *m_clusterList;
+    QLabel *m_clusterLabel;
+
+    //version info
+    QLabel     *m_codeAddrLabel;
+    QLineEdit  *m_codeAddrEdit;
+    QPushButton *m_verAddrSelect;
+    QString getCodeAddr();
+
+    //setting dialog
+    QTabWidget *settingWidget;
+    QWidget *clusterSettingWidget;
+    QWidget *versionSettingWidget;
+    QWidget *searchSettingWidget;
+
+    QAction *m_settingAction;
+
+
+private slots:
+    void selectVersionDir();
+private:
+    void initActions();
+    void initWidgets();
+
+    void initConnect();
+
+    void initDeploy();
+    void initMenuBar();
+
+
+    QMenuBar *m_menuBar;
+    QMenu *m_toolMenu;
 
 
 private slots:
     void showChangeList();
     void syncClusterCode();
+    void showSettingDialog();
+    void initClusterInfo();
 };
 
 

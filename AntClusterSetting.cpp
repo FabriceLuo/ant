@@ -1,4 +1,4 @@
-#include "AntClusterSetting.h"
+﻿#include "AntClusterSetting.h"
 #include <QFile>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -61,6 +61,36 @@ bool AntClusterSetting::getNodeList(QList<ClusterNode> &list)
     return true;
 }
 
+bool AntClusterSetting::setNodeList(const QList<ClusterNode> &list)
+{
+    QJsonObject *root = getSetting();
+    if(root == NULL)
+    {
+        fprintf(stderr, "get setting failed");
+        return false;
+    }
+    //get node list jsonobj
+    int nodeCount = list.count();
+    QJsonObject nodeListObj;
+    for(int i = 0; i < nodeCount; i++)
+    {
+        const ClusterNode node = list.at(i);
+        QJsonObject nodeObj;
+        nodeObj.insert(NODE_NAME_KEY, QJsonValue(node.name));
+        nodeObj.insert(NODE_USERNAME_KEY, QJsonValue(node.username));
+        nodeObj.insert(NODE_PASSWORD_KEY, QJsonValue(node.password));
+        nodeObj.insert(NODE_IP_KEY, QJsonValue(node.ip));
+
+        nodeListObj.insert(node.name, nodeObj);
+    }
+
+    //replace old node list
+    root->remove(NODE_LIST_KEY);
+    root->insert(NODE_LIST_KEY, nodeListObj);
+
+    return setSetting(root);
+}
+
 bool AntClusterSetting::getNodeSearchDir(QString uuid, QStringList &dirList)
 {
     return false;
@@ -105,7 +135,6 @@ QJsonDocument AntClusterSetting::readSetting()
         fprintf(stderr, "open cfg file failed");
         return doc;
     }
-    QJsonParseError error;
     QByteArray content = file.readAll();
 
     doc = QJsonDocument::fromJson(content);
@@ -118,7 +147,7 @@ bool AntClusterSetting::writeSetting(QJsonDocument setting)
     //read content from json file
     QString cfgPath = getCfgPath();
     QFile file(cfgPath);
-    if(file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    if(! file.open(QIODevice::WriteOnly | QIODevice::Truncate))
     {
         fprintf(stderr, "open cfg file failed");
         return false;

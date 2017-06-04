@@ -28,16 +28,30 @@
 //for json handle
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QContextMenuEvent>
+#include <QAction>
+#include <QMenu>
+#include <QComboBox>
+#include <QFileDialog>
+#include <QMenuBar>
 
 #include "AntDiff.h"
 #include "AntSync.h"
-#include "AntClusterSetting.h"
 
+#include "AntClusterSetting.h"
+#include "AntSettingDialog.h"
 
 Ant::Ant(QWidget *parent) :
     QMainWindow(parent),
-    commander(NULL), m_diff(NULL)
+    commander(NULL),
+    m_diff(NULL)
 {   
+    m_curNode = NULL;
+
+    initActions();
+    initWidgets();
+    initConnect();
+    initClusterInfo();
     m_headerTitle << tr("") << tr("文件名") << tr("本地路径") << tr("远程路径") << tr("修改时间") << tr("状态");
     m_headerWidth << 24 << 150 << 420 << 420 << 154 << 30;
 
@@ -55,31 +69,20 @@ Ant::Ant(QWidget *parent) :
     QVBoxLayout *mainLayout   = new QVBoxLayout();
 
     //初始化按钮
-    m_addrEdit = new QLineEdit();
-    m_addrEdit->setFixedWidth(220);
 
-    m_addrLabel         = new QLabel("集群地址");
+
     m_updateButton      = new QPushButton("更新列表");
     m_syncButton        = new QPushButton("同步");
 
-    m_versionAddrLabel  = new QLabel("代码目录");
-    m_versionAddrEdit   = new QLineEdit();
-    m_versionAddrEdit->setFixedWidth(400);
+    m_codeAddrLabel  = new QLabel("代码目录");
+    m_codeAddrEdit   = new QLineEdit();
+    m_codeAddrEdit->setFixedWidth(400);
 
-    m_userNameLabel = new QLabel("用户名");
-    m_passwordLabel = new QLabel("密码");
-
-    m_userNameEdit = new QLineEdit();
-    m_passwordEdit = new QLineEdit();
-
-    handleLayout->addWidget(m_addrLabel);
-    handleLayout->addWidget(m_addrEdit);
-    handleLayout->addWidget(m_versionAddrLabel);
-    handleLayout->addWidget(m_versionAddrEdit);
-    handleLayout->addWidget(m_userNameLabel);
-    handleLayout->addWidget(m_userNameEdit);
-    handleLayout->addWidget(m_passwordLabel);
-    handleLayout->addWidget(m_passwordEdit);
+    handleLayout->addWidget(m_clusterLabel);
+    handleLayout->addWidget(m_clusterList);
+    handleLayout->addWidget(m_codeAddrLabel);
+    handleLayout->addWidget(m_codeAddrEdit);
+    handleLayout->addWidget(m_verAddrSelect);
 
     handleLayout->addWidget(m_updateButton);
     handleLayout->addWidget(m_syncButton);
@@ -96,14 +99,11 @@ Ant::Ant(QWidget *parent) :
 
     connect(m_updateButton, SIGNAL(clicked(bool)), this, SLOT(showChangeList()));
     connect(m_syncButton, SIGNAL(clicked(bool)), this, SLOT(syncClusterCode()));
+
+    initMenuBar();
 }
 
 Ant::~Ant()
-{
-
-}
-
-void Ant::timerEvent(QTimerEvent *event)
 {
 
 }
@@ -160,26 +160,14 @@ void Ant::setHorizontalHeaderWidth(QList<int> width)
 
 void Ant::showChangeList()
 {
-    loadClusterInfo();
-    QString clusterIP = getMaster(), username = getUsername(), password = getPassword();
-    //get code location
-    m_versionPath = m_versionAddrEdit->text();
-    QList<VersionEntry> changeList = getChangeList(m_versionPath);
+    ClusterNode currentNode = getCurrentNode();
+    QString codeDir = getCodeAddr();
 
-    int count = changeList.count();
-    setTableRowCount(count);
-    QTableWidgetItem *item;
-    //m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    QList<VersionEntry> changeList = getChangeList(codeDir);
 
-
-    if(clusterIP.isEmpty())
+    if(commander == NULL && !currentNode.ip.isEmpty())
     {
-        QMessageBox::warning(this, "Ant告警", "集群IP缺失");
-        return;
-    }
-    if(commander == NULL)
-    {
-        commander = new AntCommander(clusterIP, username, password);
+        commander = new AntCommander(currentNode.ip, currentNode.username, currentNode.password);
     }
     if(m_diff == NULL)
     {
@@ -187,6 +175,9 @@ void Ant::showChangeList()
     }
     AntFinder finder(commander);
     m_table->clearContents();
+    int count = changeList.count();
+    setTableRowCount(count);
+    QTableWidgetItem *item = NULL;
     for(int i=0; i < count; i++)
     {
         for(int j = 0; j <6; j++)
@@ -210,7 +201,7 @@ void Ant::showChangeList()
         QFileInfo fileInfo(changeList.at(i).path);
 
         //find suitable des file
-        if(fileInfo.exists())
+        if(fileInfo.exists() && commander != NULL)
         {
             //remoute path
             QStringList desList = finder.find(changeList.at(i).name);
@@ -247,15 +238,10 @@ void Ant::showChangeList()
 
 void Ant::syncClusterCode()
 {
-    if(!loadClusterInfo())
-    {
-        fprintf(stderr, "load cluster info failed");
-        return;
-    }
-    QList<SyncEntry> fileList = getSyncFileList();
+    ClusterNode currentNode = getCurrentNode();
 
-    QString master = getMaster(), username = getUsername(), password = getPassword();
-    AntSync syncer(master, username, password);
+    QList<SyncEntry> fileList = getSyncFileList();
+    AntSync syncer(currentNode.ip, currentNode.username, currentNode.password);
     if(! syncer.syncToCluster(fileList))
     {
         QMessageBox::warning(this, "代码同步", "同步代码到集群各主机失败");
@@ -263,9 +249,22 @@ void Ant::syncClusterCode()
     }
 }
 
+void Ant::showSettingDialog()
+{
+    AntSettingDialog *settingDialog = new AntSettingDialog(this);
+    settingDialog->setWindowFlags(Qt::Dialog);
+    settingDialog->setWindowModality(Qt::WindowModal);
+    settingDialog->show();
+}
+
 void Ant::setTableRowCount(int count)
 {
     m_table->setRowCount(count);
+}
+
+QString Ant::getCodeAddr()
+{
+    return m_codeAddrEdit->text();
 }
 
 QList<SyncEntry> Ant::getSyncFileList()
@@ -301,28 +300,160 @@ QList<SyncEntry> Ant::getSyncFileList()
     return list;
 }
 
-bool Ant::loadClusterInfo()
+ClusterNode Ant::getCurrentNode()
 {
-    m_master = m_addrEdit->text();
-    m_userName = m_userNameEdit->text();
-    m_password = m_passwordEdit->text();
+    //get select node
+    QString nodeName = m_clusterList->currentText();
+    ClusterNode currentNode;
 
-    return true;
+    QList<ClusterNode> list;
+
+    AntClusterSetting clusterSetting;
+    if(! clusterSetting.getNodeList(list))
+    {
+        fprintf(stderr, "get cluster setting failed");
+        return currentNode;
+    }
+
+    QList<ClusterNode>::iterator begin = list.begin();
+    QList<ClusterNode>::iterator end = list.end();
+    while(begin != end)
+    {
+        if(begin->name.compare(nodeName) == 0)
+        {
+            currentNode = *begin;
+            break;
+        }
+        begin++;
+    }
+    return currentNode;
 }
 
-QString Ant::getMaster()
+void Ant::contextMenuEvent(QContextMenuEvent *event)
 {
-    return m_master;
+    QPoint pos = event->globalPos();
+    fprintf(stdout, "global x:%d,y:%d", pos.x(), pos.y());
+    //QPoint centerPos = mapFrom(this, pos);
+    pos = m_table->mapFromGlobal(pos);
+    fprintf(stdout, "map x:%d,y:%d", pos.x(), pos.y());
+
+    QTableWidgetItem *item = m_table->itemAt(pos);
+    if(item == NULL)
+    {
+        return QMainWindow::contextMenuEvent(event);
+    }
+    int colum = item->column();
+    if(colum < VersionCheck || colum > VersionStatus)
+    {
+        return QMainWindow::contextMenuEvent(event);
+    }
+    QMenu menu;
+    switch (colum) {
+    case VersionCheck:
+        break;
+    case VersionLocalPath:
+        menu.addAction(m_editFileAction);
+        menu.addAction(m_openDirAction);
+        menu.addSeparator();
+        menu.addAction(m_selectAllAction);
+        menu.addAction(m_selectNoneAction);
+        menu.addSeparator();
+        menu.addAction(m_patchAction);
+        menu.addAction(m_diffAction);
+        menu.addAction(m_blameAction);
+        break;
+    case VersionRemotePath:
+        break;
+    case VersionModifyTime:
+        break;
+    case VersionStatus:
+        break;
+    default:
+        break;
+    }
+    if(menu.isEmpty())
+    {
+        return QMainWindow::contextMenuEvent(event);
+    }
+    fprintf(stdout, "map x:%d,y:%d", QCursor::pos().x(), QCursor::pos().y());
+    menu.exec(QCursor::pos());
 }
 
-QString Ant::getUsername()
+void Ant::selectVersionDir()
 {
-    return m_userName;
+    QString dir = QFileDialog::getExistingDirectory(this,
+                                                    "选择代码路径",
+                                                    ".",
+                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    m_codeAddrEdit->setText(dir);
 }
 
-QString Ant::getPassword()
+void Ant::initClusterInfo()
 {
-    return m_password;
+    QList<ClusterNode> list;
+    AntClusterSetting clusterSetting;
+
+    if(! clusterSetting.getNodeList(list))
+    {
+        fprintf(stderr, "get cluster setting failed");
+        return;
+    }
+    m_clusterList->clear();
+    QList<ClusterNode>::iterator begin = list.begin();
+    QList<ClusterNode>::iterator end = list.end();
+    while(begin != end)
+    {
+        m_clusterList->addItem(begin->name);
+        begin++;
+    }
+}
+
+void Ant::initActions()
+{
+
+    m_editFileAction    = new QAction("编辑文件");
+    m_openDirAction     = new QAction("打开文件目录");
+
+    m_selectAllAction   = new QAction("全选");
+    m_selectNoneAction  = new QAction("全不选");
+
+    m_patchAction       = new QAction("Patch");
+    m_diffAction        = new QAction("Diff");
+    m_blameAction       = new QAction("Blame");
+
+    m_settingAction     = new QAction("设置");
+
+}
+
+void Ant::initWidgets()
+{
+    m_clusterLabel = new QLabel("集群信息");
+    m_clusterList = new QComboBox();
+
+    m_verAddrSelect = new QPushButton("选择...");
+    m_codeAddrLabel = new QLabel("代码路径");
+    m_codeAddrEdit  = new QLineEdit();
+    m_codeAddrEdit->setFixedWidth(220);
+
+}
+
+void Ant::initConnect()
+{
+    connect(m_verAddrSelect, SIGNAL(clicked(bool)), this, SLOT(selectVersionDir()));
+    connect(m_settingAction, SIGNAL(triggered(bool)), this, SLOT(showSettingDialog()));
+}
+
+void Ant::initDeploy()
+{
+
+}
+
+void Ant::initMenuBar()
+{
+    m_toolMenu = new QMenu(tr("工具"));
+    m_toolMenu->addAction(m_settingAction);
+
+    menuBar()->addMenu(m_toolMenu);
 }
 
 VersionType Ant::getVersionType(QString path)
