@@ -2,7 +2,7 @@
 #include <QLayout>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include "AntClusterSetting.h"
+#include "AntSetting.h"
 #include <QTableWidgetItem>
 
 
@@ -94,7 +94,7 @@ void AntClusterSettingDialog::setHorizontalHeaderWidth(QList<int> width)
 
 void AntClusterSettingDialog::loadSetting()
 {
-    AntClusterSetting settingObj;
+    AntSetting settingObj;
     QList<ClusterNode> list;
     if(! settingObj.getNodeList(list))
     {
@@ -165,7 +165,7 @@ void AntClusterSettingDialog::saveSetting()
         list.push_back(node);
     }
 
-    AntClusterSetting settingObj;
+    AntSetting settingObj;
     if(! settingObj.setNodeList(list))
     {
         QMessageBox::critical(this, "≈‰÷√", "±£¥ÊºØ»∫≈‰÷√ ß∞‹");

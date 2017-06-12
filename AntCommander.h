@@ -1,4 +1,4 @@
-#ifndef ANTCOMMANDER_H
+﻿#ifndef ANTCOMMANDER_H
 #define ANTCOMMANDER_H
 
 #include <QString>
@@ -54,6 +54,7 @@ public:
     int exec(const QString &cmd, const QStringList &param, QString &stdOut, QString &stdErr);
     bool scpTo(const QString &src, const QString &des);
     bool scpFrom(const QString &src, const QString &des);
+    bool mkdir(const QString &path);
 
     ClusterNode getCurrentNode();
 

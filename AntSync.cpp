@@ -1,4 +1,4 @@
-#include "AntSync.h"
+﻿#include "AntSync.h"
 
 #include <QMessageBox>
 #include <QJsonDocument>
@@ -7,6 +7,8 @@
 #include <QJsonValue>
 #include <QJsonParseError>
 
+#include <QFileInfo>
+#include <QDir>
 #include "AntCommander.h"
 
 AntSync::AntSync(QString master, QString username, QString password):
@@ -144,6 +146,12 @@ bool AntSync::syncToNode(QString node, const QList<SyncEntry> &entryList)
     int i = 0;
     while (i < entryCount) {
         SyncEntry entry = entryList.at(i);
+        QString dir = QFileInfo(entry.des).path();
+        if(! commander.mkdir(dir))
+        {
+            fprintf(stderr, "create dir failed");
+            return false;
+        }
         if(! commander.scpTo(entry.src, entry.des))
         {
             fprintf(stderr, "scp file(%s) to file(%s) at node(%s) failed", entry.src.toStdString().c_str(), entry.des.toStdString().c_str());

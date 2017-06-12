@@ -1,4 +1,4 @@
-#include "AntCommander.h"
+﻿#include "AntCommander.h"
 #include <QStringList>
 #include <QString>
 #include <sys/types.h>
@@ -139,7 +139,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
         {
             memset(buffer, 0, sizeof(buffer));
             rc = libssh2_channel_read(m_channel, buffer, sizeof(buffer));
-            if(rc > 0)
+            if(rc >= 0)
             {
                 stdOut.append(buffer);
             }
@@ -170,7 +170,7 @@ int AntCommander::exec(const QString &cmd, const QStringList &param, QString &st
         {
             memset(buffer, 0, sizeof(buffer));
             rc = libssh2_channel_read_stderr(m_channel, buffer, sizeof(buffer));
-            if(rc > 0)
+            if(rc >= 0)
             {
                 stdErr.append(buffer);
             }
@@ -355,6 +355,21 @@ failed:
     }
     */
     return 1;
+}
+
+bool AntCommander::mkdir(const QString &path)
+{
+    QString cmd = "mkdir";
+    QStringList param;
+    param << "-p" << path;
+    QString stdOut, stdErr;
+
+    if(exec(cmd, param, stdOut, stdErr) != 0)
+    {
+        fprintf(stderr, "mkdir dir %s failed", path.toStdString().c_str());
+        return false;
+    }
+    return true;
 }
 
 ClusterNode AntCommander::getCurrentNode()

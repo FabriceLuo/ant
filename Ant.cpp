@@ -34,11 +34,12 @@
 #include <QComboBox>
 #include <QFileDialog>
 #include <QMenuBar>
-
+#include <QDir>
+#include <QDesktopServices>
 #include "AntDiff.h"
 #include "AntSync.h"
 
-#include "AntClusterSetting.h"
+#include "AntSetting.h"
 #include "AntSettingDialog.h"
 
 Ant::Ant(QWidget *parent) :
@@ -187,6 +188,7 @@ void Ant::showChangeList()
         }
         //check box
         m_table->item(i, VersionCheck)->setCheckState(Qt::Checked);
+        m_table->item(i, VersionCheck)->setFlags(item->flags() & (~Qt::ItemIsEditable));
 
         //name
         item = m_table->item(i, VersionName);
@@ -216,17 +218,20 @@ void Ant::showChangeList()
             {
                 m_table->item(i, VersionCheck)->setCheckState(Qt::Unchecked);
             }
-
-            //last modify time
-            item = m_table->item(i, VersionModifyTime);
-            item->setText(fileInfo.lastModified().toString("HH:mm:ss MM-dd-yyyy"));
-            item->setFlags(item->flags() & (~Qt::ItemIsEditable));
         }
         else {
             for(int j = 1; j <= 5; j++)
             {
                 m_table->item(i, j)->setBackgroundColor(QColor(200, 200, 200));
             }
+            m_table->item(i, VersionCheck)->setCheckState(Qt::Unchecked);
+        }
+         //last modify time
+        item = m_table->item(i, VersionModifyTime);
+        item->setFlags(item->flags() & (~Qt::ItemIsEditable));
+        if(fileInfo.exists())
+        {
+            item->setText(fileInfo.lastModified().toString("HH:mm:ss MM-dd-yyyy"));
         }
 
         //version status
@@ -308,8 +313,8 @@ ClusterNode Ant::getCurrentNode()
 
     QList<ClusterNode> list;
 
-    AntClusterSetting clusterSetting;
-    if(! clusterSetting.getNodeList(list))
+    AntSetting setting;
+    if(! setting.getNodeList(list))
     {
         fprintf(stderr, "get cluster setting failed");
         return currentNode;
@@ -332,6 +337,7 @@ ClusterNode Ant::getCurrentNode()
 void Ant::contextMenuEvent(QContextMenuEvent *event)
 {
     QPoint pos = event->globalPos();
+    m_mousePoint = pos;
     fprintf(stdout, "global x:%d,y:%d", pos.x(), pos.y());
     //QPoint centerPos = mapFrom(this, pos);
     pos = m_table->mapFromGlobal(pos);
@@ -391,9 +397,9 @@ void Ant::selectVersionDir()
 void Ant::initClusterInfo()
 {
     QList<ClusterNode> list;
-    AntClusterSetting clusterSetting;
+    AntSetting setting;
 
-    if(! clusterSetting.getNodeList(list))
+    if(! setting.getNodeList(list))
     {
         fprintf(stderr, "get cluster setting failed");
         return;
@@ -405,6 +411,57 @@ void Ant::initClusterInfo()
     {
         m_clusterList->addItem(begin->name);
         begin++;
+    }
+}
+
+void Ant::openVersionFileLoc()
+{
+    QPoint pos = m_table->mapFromGlobal(m_mousePoint);
+    QTableWidgetItem *item = m_table->itemAt(pos);
+
+    QString path = item->text();
+    if(! path.isEmpty())
+    {
+        QString dir = QFileInfo(path).path();
+        if(! QDesktopServices::openUrl(dir))
+        {
+            fprintf(stderr, "open file dir failed");
+            return;
+        }
+    }
+}
+
+void Ant::editVersionFile()
+{
+    QPoint pos = m_table->mapFromGlobal(m_mousePoint);
+    QTableWidgetItem *item = m_table->itemAt(pos);
+
+    QString path = item->text();
+    if(! path.isEmpty())
+    {
+        if(! QDesktopServices::openUrl(path))
+        {
+            fprintf(stderr, "open file failed");
+            return;
+        }
+    }
+}
+
+void Ant::selectAllVersion()
+{
+    int listCount = m_table->rowCount();
+    for(int i = 0; i < listCount; i++)
+    {
+        m_table->item(i, VersionCheck)->setCheckState(Qt::Checked);
+    }
+}
+
+void Ant::selectNoneVersion()
+{
+    int listCount = m_table->rowCount();
+    for(int i = 0; i < listCount; i++)
+    {
+        m_table->item(i, VersionCheck)->setCheckState(Qt::Unchecked);
     }
 }
 
@@ -420,6 +477,10 @@ void Ant::initActions()
     m_patchAction       = new QAction("Patch");
     m_diffAction        = new QAction("Diff");
     m_blameAction       = new QAction("Blame");
+
+    m_patchAction->setEnabled(false);
+    m_diffAction->setEnabled(false);
+    m_blameAction->setEnabled(false);
 
     m_settingAction     = new QAction("设置");
 
@@ -441,6 +502,13 @@ void Ant::initConnect()
 {
     connect(m_verAddrSelect, SIGNAL(clicked(bool)), this, SLOT(selectVersionDir()));
     connect(m_settingAction, SIGNAL(triggered(bool)), this, SLOT(showSettingDialog()));
+
+    connect(m_editFileAction, SIGNAL(triggered(bool)), this, SLOT(editVersionFile()));
+    connect(m_openDirAction, SIGNAL(triggered(bool)), this, SLOT(openVersionFileLoc()));
+
+    connect(m_selectAllAction, SIGNAL(triggered(bool)), this, SLOT(selectAllVersion()));
+    connect(m_selectNoneAction, SIGNAL(triggered(bool)), this, SLOT(selectNoneVersion()));
+
 }
 
 void Ant::initDeploy()
@@ -458,7 +526,19 @@ void Ant::initMenuBar()
 
 VersionType Ant::getVersionType(QString path)
 {
-    return VersionTypeGit;
+    //return VersionTypeGit;
+    QDir dir(path);
+    if(dir.exists(".git"))
+    {
+        return VersionTypeGit;
+    }
+    else if(dir.exists(".svn"))
+    {
+        return VersionTypeSvn;
+    }
+    else {
+        return VersionTypeErr;
+    }
 }
 
 

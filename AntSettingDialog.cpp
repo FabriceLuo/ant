@@ -3,7 +3,8 @@
 #include <QHBoxLayout>
 
 AntSettingDialog::AntSettingDialog(QWidget *parent, Qt::WindowFlags f):
-    CLUSTER_TAB_NAME(tr("集群")), QWidget(parent, f)
+    CLUSTER_TAB_NAME(tr("集群")), QWidget(parent, f),
+    SEARCH_TAB_NAME(tr("代码搜索"))
 {
     setWindowTitle(tr("设置"));
     initWidget();
@@ -16,6 +17,7 @@ void AntSettingDialog::initWidget()
     m_settingTab = new QTabWidget();
 
     m_clusterDialog = new AntClusterSettingDialog;
+    m_searchDialog  = new AntSearchSettingDialog;
 
     m_okBtn = new QPushButton(tr("确定"));
     m_applyBtn = new QPushButton(tr("应用"));
@@ -24,6 +26,7 @@ void AntSettingDialog::initWidget()
 void AntSettingDialog::initDepoly()
 {
     m_settingTab->addTab(m_clusterDialog, CLUSTER_TAB_NAME);
+    m_settingTab->addTab(m_searchDialog, SEARCH_TAB_NAME);
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
 
@@ -41,16 +44,17 @@ void AntSettingDialog::initDepoly()
 void AntSettingDialog::initConnect()
 {
     connect(m_applyBtn, SIGNAL(clicked(bool)), this, SLOT(saveSetting()));
+    connect(m_okBtn, SIGNAL(clicked(bool)), this, SLOT(saveSettingAndExit()));
 }
 
 void AntSettingDialog::saveSettingAndExit()
 {
-
+    saveSetting();
+    destroy();
 }
 
 void AntSettingDialog::saveSetting()
 {
-    QWidget *curWidget = m_settingTab->currentWidget();
-
-    ((AntClusterSettingDialog*)curWidget)->saveSetting();
+    m_clusterDialog->saveSetting();
+    m_searchDialog->saveSetting();
 }

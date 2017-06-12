@@ -15,7 +15,6 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         Ant.cpp \
-    AntSetting.cpp \
     AntBackup.cpp \
     AntFinder.cpp \
     AntCommander.cpp \
@@ -25,13 +24,14 @@ SOURCES += main.cpp\
     AntCommon.cpp \
     AntDiff.cpp \
     AntSync.cpp \
-    AntClusterSetting.cpp \
     AntSettingDialog.cpp \
-    AntClusterSettingDialog.cpp
+    AntClusterSettingDialog.cpp \
+    AntVersionSetting.cpp \
+    AntSetting.cpp \
+    AntSearchSettingDialog.cpp
 
 
 HEADERS  += Ant.h \
-    AntSetting.h \
     AntBackup.h \
     AntFinder.h \
     AntCommander.h \
@@ -41,9 +41,11 @@ HEADERS  += Ant.h \
     AntCommon.h \
     AntDiff.h \
     AntSync.h \
-    AntClusterSetting.h \
     AntSettingDialog.h \
-    AntClusterSettingDialog.h
+    AntClusterSettingDialog.h \
+    AntVersionSetting.h \
+    AntSetting.h \
+    AntSearchSettingDialog.h
 
 
 INCLUDEPATH += /usr/local/include

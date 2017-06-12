@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTabWidget>
 #include "AntClusterSettingDialog.h"
+#include "AntSearchSettingDialog.h"
 #include "AntCommon.h"
 class AntSettingDialog : public QWidget
 {
@@ -13,8 +14,9 @@ public:
 private:
     QTabWidget *m_settingTab;
 
-    const QString CLUSTER_TAB_NAME;
+    const QString CLUSTER_TAB_NAME, SEARCH_TAB_NAME;
     AntClusterSettingDialog *m_clusterDialog;
+    AntSearchSettingDialog  *m_searchDialog;
 
     QPushButton *m_okBtn, *m_applyBtn;
 

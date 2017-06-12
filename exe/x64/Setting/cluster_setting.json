@@ -1,13 +1,14 @@
 {
-	"ClusterList" : {
-		"xksdfjeiwsdkfewjisdfkew" : {
-			"name": "xxxxx",
-			"ip" : "192.168.101.",
-			"username" : "root",
-			"password" : "adminsangfornetwork"
-		}
-	},
-	"SearchDir" : [
-		"/home/test"
-	]
+    "ClusterList": {
+        "192.168.122.132": {
+            "ip": "192.168.122.132",
+            "name": "192.168.122.132",
+            "password": "081126",
+            "username": "root"
+        }
+    },
+    "SearchDir": [
+        "/home/ccccccccc",
+        "/home/eeeeeeee/"
+    ]
 }

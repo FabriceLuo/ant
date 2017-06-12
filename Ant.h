@@ -96,6 +96,7 @@ private:
 
     QAction *m_settingAction;
 
+    QPoint m_mousePoint;
 
 private slots:
     void selectVersionDir();
@@ -113,11 +114,19 @@ private:
     QMenu *m_toolMenu;
 
 
+
+
 private slots:
     void showChangeList();
     void syncClusterCode();
     void showSettingDialog();
     void initClusterInfo();
+
+
+    void openVersionFileLoc();
+    void editVersionFile();
+    void selectAllVersion();
+    void selectNoneVersion();
 };
 
 
