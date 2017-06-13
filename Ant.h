@@ -80,6 +80,7 @@ private:
 
     //cluster info
     QComboBox *m_clusterList;
+    QString   m_curCluster;
     QLabel *m_clusterLabel;
 
     //version info

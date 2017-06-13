@@ -372,6 +372,11 @@ bool AntCommander::mkdir(const QString &path)
     return true;
 }
 
+bool AntCommander::testConnect()
+{
+    return checkConnect();
+}
+
 ClusterNode AntCommander::getCurrentNode()
 {
     return m_node;

@@ -116,6 +116,7 @@ void AntClusterSettingDialog::loadSetting()
         //node check
         item = new QTableWidgetItem();
         item->setCheckState(Qt::Unchecked);
+        item->setFlags(item->flags() & (~Qt::ItemIsEditable));
         m_clusterList->setItem(i, NodeCheck, item);
 
         //node name
@@ -182,6 +183,7 @@ void AntClusterSettingDialog::addClusterNode()
 
     item = new QTableWidgetItem();
     item->setCheckState(Qt::Unchecked);
+    item->setFlags(item->flags() & (~Qt::ItemIsEditable));
     m_clusterList->setItem(curNodeCount, NodeCheck, item);
 
     for(int i = NodeName; i <= NodeIP; i++)

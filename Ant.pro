@@ -28,7 +28,8 @@ SOURCES += main.cpp\
     AntClusterSettingDialog.cpp \
     AntVersionSetting.cpp \
     AntSetting.cpp \
-    AntSearchSettingDialog.cpp
+    AntSearchSettingDialog.cpp \
+    AntCluster.cpp
 
 
 HEADERS  += Ant.h \
@@ -45,7 +46,8 @@ HEADERS  += Ant.h \
     AntClusterSettingDialog.h \
     AntVersionSetting.h \
     AntSetting.h \
-    AntSearchSettingDialog.h
+    AntSearchSettingDialog.h \
+    AntCluster.h
 
 
 INCLUDEPATH += /usr/local/include

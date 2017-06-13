@@ -77,4 +77,24 @@ public:
     bool online;
 };
 
+enum ClusterServiceType {
+    ClusterServiceStart,
+    ClusterServiceStop,
+    ClusterServiceRestart
+};
+
+class ClusterServiceCmd {
+    ClusterServiceType type;
+    QString description;
+    QString command;
+};
+
+class ClusterService {
+public:
+    QString name;
+    QString description;
+    QList<ClusterServiceCmd> cmdList;
+};
+
+
 #endif // ANTCOMMON_H

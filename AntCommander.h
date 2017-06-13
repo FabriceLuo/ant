@@ -55,6 +55,7 @@ public:
     bool scpTo(const QString &src, const QString &des);
     bool scpFrom(const QString &src, const QString &des);
     bool mkdir(const QString &path);
+    bool testConnect();
 
     ClusterNode getCurrentNode();
 

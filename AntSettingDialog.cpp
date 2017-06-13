@@ -3,7 +3,7 @@
 #include <QHBoxLayout>
 
 AntSettingDialog::AntSettingDialog(QWidget *parent, Qt::WindowFlags f):
-    CLUSTER_TAB_NAME(tr("集群")), QWidget(parent, f),
+    CLUSTER_TAB_NAME(tr("集群")), QDialog(parent, f),
     SEARCH_TAB_NAME(tr("代码搜索"))
 {
     setWindowTitle(tr("设置"));
@@ -50,7 +50,7 @@ void AntSettingDialog::initConnect()
 void AntSettingDialog::saveSettingAndExit()
 {
     saveSetting();
-    destroy();
+    QDialog::accept();
 }
 
 void AntSettingDialog::saveSetting()

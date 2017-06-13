@@ -3,10 +3,11 @@
 
 #include <QWidget>
 #include <QTabWidget>
+#include <QDialog>
 #include "AntClusterSettingDialog.h"
 #include "AntSearchSettingDialog.h"
 #include "AntCommon.h"
-class AntSettingDialog : public QWidget
+class AntSettingDialog : public QDialog
 {
     Q_OBJECT
 public:

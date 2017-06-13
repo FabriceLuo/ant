@@ -85,6 +85,7 @@ void AntSearchSettingDialog::loadSetting()
     {
         item = new QTableWidgetItem();
         item->setCheckState(Qt::Unchecked);
+        item->setFlags(item->flags() & (~Qt::ItemIsEditable));
         m_searchList->setItem(i, SearchCheck, item);
 
         item = new QTableWidgetItem();
@@ -133,6 +134,7 @@ void AntSearchSettingDialog::addSearchDir()
 
     item = new QTableWidgetItem();
     item->setCheckState(Qt::Unchecked);
+    item->setFlags(item->flags() & (~Qt::ItemIsEditable));
     m_searchList->setItem(listCount, SearchCheck, item);
 
     item = new QTableWidgetItem();

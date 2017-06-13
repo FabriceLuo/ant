@@ -169,6 +169,10 @@ void Ant::showChangeList()
     if(commander == NULL && !currentNode.ip.isEmpty())
     {
         commander = new AntCommander(currentNode.ip, currentNode.username, currentNode.password);
+        if(!commander->testConnect())
+        {
+            commander = NULL;
+        }
     }
     if(m_diff == NULL)
     {
@@ -256,10 +260,10 @@ void Ant::syncClusterCode()
 
 void Ant::showSettingDialog()
 {
-    AntSettingDialog *settingDialog = new AntSettingDialog(this);
-    settingDialog->setWindowFlags(Qt::Dialog);
-    settingDialog->setWindowModality(Qt::WindowModal);
-    settingDialog->show();
+    AntSettingDialog settingDialog(this);
+    settingDialog.exec();
+    //reload cluster setting
+    initClusterInfo();
 }
 
 void Ant::setTableRowCount(int count)
@@ -396,21 +400,43 @@ void Ant::selectVersionDir()
 
 void Ant::initClusterInfo()
 {
+    if(m_clusterList->count() > 0)
+    {
+        QString curCluster = m_clusterList->currentText();
+        if(!curCluster.isEmpty())
+        {
+            m_curCluster = curCluster;
+        }
+    }
+    m_clusterList->clear();
+    //get setting info
     QList<ClusterNode> list;
     AntSetting setting;
-
     if(! setting.getNodeList(list))
     {
         fprintf(stderr, "get cluster setting failed");
         return;
     }
-    m_clusterList->clear();
-    QList<ClusterNode>::iterator begin = list.begin();
-    QList<ClusterNode>::iterator end = list.end();
-    while(begin != end)
+    //get old select location
+    int listCount = list.count(), curIndex = -1;
+    for(int i = 0; i < listCount; i++)
     {
-        m_clusterList->addItem(begin->name);
-        begin++;
+        m_clusterList->addItem(list.at(i).name);
+        if(! m_curCluster.isEmpty()
+                && m_curCluster.compare(list.at(i).name) == 0
+                && curIndex < 0)
+        {
+            curIndex = i;
+        }
+    }
+    //set old select
+    if(curIndex < 0 && list.count() > 0)
+    {
+        curIndex = 0;
+    }
+    if(curIndex >= 0)
+    {
+        m_clusterList->setCurrentIndex(curIndex);
     }
 }
 
