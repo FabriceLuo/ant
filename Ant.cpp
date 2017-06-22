@@ -123,6 +123,11 @@ QList<VersionEntry> Ant::getChangeList(QString &path)
     default:
         break;
     }
+    if(NULL == version)
+    {
+        QList<VersionEntry> list;
+        return list;
+    }
     //free memory
     return version->getchangeList();
 }

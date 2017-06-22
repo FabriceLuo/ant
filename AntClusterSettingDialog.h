@@ -44,7 +44,7 @@ private:
     void setHorizontalHeaderWidth(QList<int> width);
 
     void loadSetting();
-public:
+public slots:
     void saveSetting();
 
 private slots:

@@ -3,8 +3,11 @@
 #include <QHBoxLayout>
 
 AntSettingDialog::AntSettingDialog(QWidget *parent, Qt::WindowFlags f):
-    CLUSTER_TAB_NAME(tr("集群")), QDialog(parent, f),
-    SEARCH_TAB_NAME(tr("代码搜索"))
+    QDialog(parent, f),
+    CLUSTER_TAB_NAME(tr("集群")),
+    SEARCH_TAB_NAME(tr("代码搜索")),
+    SERVICE_TAB_NAME(tr("集群服务"))
+
 {
     setWindowTitle(tr("设置"));
     initWidget();
@@ -18,6 +21,7 @@ void AntSettingDialog::initWidget()
 
     m_clusterDialog = new AntClusterSettingDialog;
     m_searchDialog  = new AntSearchSettingDialog;
+    m_serviceDialog = new AntServiceSettingDialog;
 
     m_okBtn = new QPushButton(tr("确定"));
     m_applyBtn = new QPushButton(tr("应用"));
@@ -27,6 +31,7 @@ void AntSettingDialog::initDepoly()
 {
     m_settingTab->addTab(m_clusterDialog, CLUSTER_TAB_NAME);
     m_settingTab->addTab(m_searchDialog, SEARCH_TAB_NAME);
+    m_settingTab->addTab(m_serviceDialog, SERVICE_TAB_NAME);
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
 
@@ -57,4 +62,5 @@ void AntSettingDialog::saveSetting()
 {
     m_clusterDialog->saveSetting();
     m_searchDialog->saveSetting();
+    m_serviceDialog->saveSetting();
 }

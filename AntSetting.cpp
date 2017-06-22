@@ -5,14 +5,22 @@
 #include <QJsonArray>
 #include <QDebug>
 #include <QJsonParseError>
+
 AntSetting::AntSetting(QString cfgPath):
     m_cfgPath(cfgPath),
     NODE_LIST_KEY("ClusterList"),
     SEARCH_DIR_KEY("SearchDir"),
+    SERVICE_LIST_KEY("Service"),
     NODE_NAME_KEY("name"),
     NODE_IP_KEY("ip"),
     NODE_USERNAME_KEY("username"),
-    NODE_PASSWORD_KEY("password")
+    NODE_PASSWORD_KEY("password"),
+    SERVICE_NAME_KEY("name"),
+    SERVICE_DES_KEY("description"),
+    SERVICE_CMD_KEY("cmdList"),
+    SERVICE_CMD_TYPE_KEY("type"),
+    SERVICE_CMD_DES_KEY("description"),
+    SERVICE_CMD_COMMAND_KEY("command")
 {
 
 }
@@ -146,6 +154,107 @@ bool AntSetting::setGlobalSearchDir(const QStringList &dirList)
         fprintf(stderr, "write search directory failed");
         return false;
     }
+    return true;
+}
+
+bool AntSetting::getServiceList(QList<ClusterService> &list)
+{
+    QJsonObject *root = getSetting();
+    if(root == NULL)
+    {
+        fprintf(stderr, "get setting failed");
+        return false;
+    }
+    QJsonValue serviceListValue = root->value(SERVICE_LIST_KEY).toObject();
+    if(serviceListValue.isUndefined() || !serviceListValue.isObject())
+    {
+        fprintf(stderr, "read service info failed");
+        return false;
+    }
+    QJsonObject serviceListObj = serviceListValue.toObject();
+    QStringList nameList = serviceListObj.keys();
+
+    int serviceCount = nameList.count();
+    for(int i = 0; i < serviceCount; i++)
+    {
+        QJsonObject serviceObj = serviceListObj.value(nameList.at(i)).toObject();
+        ClusterService service;
+        service.name = serviceObj.value(SERVICE_NAME_KEY).toString();
+        service.description = serviceObj.value(SERVICE_DES_KEY).toString();
+
+        QJsonArray cmdListArr = serviceObj.value(SERVICE_CMD_KEY).toArray();
+        int cmdCount = cmdListArr.count();
+        QList<ClusterServiceCmd> cmdList;
+        for(int j = 0; j < cmdCount; j++)
+        {
+            ClusterServiceCmd cmd;
+            QJsonObject cmdObj = cmdListArr.at(j).toObject();
+
+            cmd.type = (ClusterServiceType)cmdObj.value(SERVICE_CMD_TYPE_KEY).toInt();
+            cmd.command = cmdObj.value(SERVICE_CMD_COMMAND_KEY).toString();
+            cmd.description = "";
+
+            cmdList.push_back(cmd);
+        }
+        service.cmdList = cmdList;
+
+        list.push_back(service);
+    }
+
+    return true;
+}
+
+bool AntSetting::setServiceList(const QList<ClusterService> &list)
+{
+    QJsonObject serviceListObj;
+
+    int listCount = list.count();
+    for(int i = 0 ; i < listCount; i++)
+    {
+
+        ClusterService service = list.at(i);
+
+        QJsonObject serviceObj;
+        serviceObj.insert(SERVICE_NAME_KEY, QJsonValue(service.name));
+        serviceObj.insert(SERVICE_DES_KEY, QJsonValue(service.description));
+
+        QJsonArray cmdListArr;
+        QList<ClusterServiceCmd> cmdList = service.cmdList;
+        int cmdCount = cmdList.count();
+
+        for(int j = 0; j < cmdCount; j++)
+        {
+            QJsonObject cmdObj;
+            cmdObj.insert(SERVICE_CMD_TYPE_KEY, QJsonValue(cmdList.at(j).type));
+            cmdObj.insert(SERVICE_CMD_DES_KEY, QJsonValue(cmdList.at(j).description));
+            cmdObj.insert(SERVICE_CMD_COMMAND_KEY,  QJsonValue(cmdList.at(j).command));
+
+            cmdListArr.push_back(cmdObj);
+        }
+        serviceObj.insert(SERVICE_CMD_KEY, cmdListArr);
+
+        serviceListObj.insert(service.name, serviceObj);
+    }
+
+    QJsonObject *root = getSetting();
+    if(root == NULL)
+    {
+        fprintf(stderr, "read setting failed");
+        return false;
+    }
+
+    if(root->contains(SERVICE_LIST_KEY))
+    {
+        root->remove(SERVICE_LIST_KEY);
+    }
+    root->insert(SERVICE_LIST_KEY, serviceListObj);
+
+    if(! setSetting(root))
+    {
+        fprintf(stderr, "set setting failed");
+        return false;
+    }
+
     return true;
 }
 

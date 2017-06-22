@@ -29,7 +29,9 @@ SOURCES += main.cpp\
     AntVersionSetting.cpp \
     AntSetting.cpp \
     AntSearchSettingDialog.cpp \
-    AntCluster.cpp
+    AntCluster.cpp \
+    AntServiceSettingDialog.cpp \
+    AntServiceEditDialog.cpp
 
 
 HEADERS  += Ant.h \
@@ -47,7 +49,9 @@ HEADERS  += Ant.h \
     AntVersionSetting.h \
     AntSetting.h \
     AntSearchSettingDialog.h \
-    AntCluster.h
+    AntCluster.h \
+    AntServiceSettingDialog.h \
+    AntServiceEditDialog.h
 
 
 INCLUDEPATH += /usr/local/include

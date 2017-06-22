@@ -84,6 +84,7 @@ enum ClusterServiceType {
 };
 
 class ClusterServiceCmd {
+public:
     ClusterServiceType type;
     QString description;
     QString command;

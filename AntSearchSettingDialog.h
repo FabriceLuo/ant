@@ -22,8 +22,6 @@ class AntSearchSettingDialog : public QWidget
     Q_OBJECT
 public:
     AntSearchSettingDialog();
-
-    void saveSetting();
 private:
     QPushButton *m_addBtn, *m_deleteBtn;
     QLabel *m_searchLabel;
@@ -40,7 +38,8 @@ private:
 
     void setHorizontalHeaderWidth(QList<int> width);
     void setHorizontalHeader(QStringList header);
-
+public slots:
+    void saveSetting();
 private slots:
     void addSearchDir();
     void deleteSearchDir();
